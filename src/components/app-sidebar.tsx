@@ -1,67 +1,67 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import * as React from "react";
 
+import { PortfolioSwitcher } from "@/components/portfolio-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
 } from "@/components/ui/sidebar";
+import { list_portfolios } from "@/features/portfolio";
+import { LucideIcon } from "lucide-react";
 
-// Menu items.
-const items = [
-  {
-    title: "Home",
-    url: "#",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-];
+interface SidebarItem {
+  title: string;
+  icon: LucideIcon;
+  isActive?: boolean;
+  component: React.ComponentType;
+}
 
-export function AppSidebar() {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  sidebarItems: SidebarItem[];
+  setCurrentComponent: React.Dispatch<React.SetStateAction<JSX.Element>>;
+}
+
+export function AppSidebar({
+  sidebarItems,
+  setCurrentComponent,
+  ...props
+}: AppSidebarProps) {
+  const [portfolios, setPortfolios] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    list_portfolios().then((newPortfolios) => {
+      setPortfolios(newPortfolios);
+    });
+  }, []);
+
   return (
-    <Sidebar>
+    <Sidebar {...props}>
+      <SidebarHeader>
+        <PortfolioSwitcher
+          portfolios={portfolios}
+          defaultPortfolio={portfolios[0]}
+        />
+      </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <SidebarMenu>
+          {sidebarItems.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                isActive={item.isActive}
+                onClick={() => setCurrentComponent(<item.component />)}
+              >
+                <item.icon />
+                <span>{item.title}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   );
 }
