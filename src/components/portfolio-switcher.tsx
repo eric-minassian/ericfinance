@@ -1,10 +1,11 @@
-import { Check, ChevronsUpDown, Wallet } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Wallet } from "lucide-react";
 import * as React from "react";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -46,7 +47,7 @@ export function PortfolioSwitcher({
               </div>
               <div className="flex flex-col gap-0.5 leading-none">
                 <span className="font-semibold">Portfolio</span>
-                <span>{selectedPortfolio}</span>
+                {selectedPortfolio && <span>{selectedPortfolio}</span>}
               </div>
               <ChevronsUpDown className="ml-auto" />
             </button>
@@ -55,17 +56,31 @@ export function PortfolioSwitcher({
             className="w-[--radix-dropdown-menu-trigger-width]"
             align="start"
           >
-            {portfolios.map((portfolio) => (
-              <DropdownMenuItem
-                key={portfolio}
-                onSelect={() => setSelectedPortfolio(portfolio)}
-              >
-                {portfolio}
-                {portfolio === selectedPortfolio && (
-                  <Check className="ml-auto" />
-                )}
-              </DropdownMenuItem>
-            ))}
+            {portfolios.length ? (
+              portfolios.map((portfolio) => (
+                <DropdownMenuItem
+                  key={portfolio}
+                  onSelect={() => setSelectedPortfolio(portfolio)}
+                >
+                  {portfolio}
+                  {portfolio === selectedPortfolio && (
+                    <Check className="ml-auto" />
+                  )}
+                </DropdownMenuItem>
+              ))
+            ) : (
+              <DropdownMenuItem>No portfolios found</DropdownMenuItem>
+            )}
+
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-2 p-2">
+              <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                <Plus className="size-4" />
+              </div>
+              <div className="font-medium text-muted-foreground">
+                Add portfolio
+              </div>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
