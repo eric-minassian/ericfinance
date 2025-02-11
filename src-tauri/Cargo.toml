@@ -23,8 +23,8 @@ tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dirs = "6.0.0"
-rusqlite = { version = "0.33.0", features = ["bundled"] }
-aes-gcm = "0.10.3"
-rand = "0.9.0"
-argon2 = "0.5.3"
-base64 = "0.22.1"
+rusqlite = { version = "0.33.0", features = [
+    "bundled",
+    "sqlcipher",
+    "bundled-sqlcipher",
+] }

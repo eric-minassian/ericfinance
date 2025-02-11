@@ -10,7 +10,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { list_portfolios } from "@/features/portfolio";
 import { LucideIcon } from "lucide-react";
 
 interface SidebarItem {
@@ -30,21 +29,10 @@ export function AppSidebar({
   setCurrentComponent,
   ...props
 }: AppSidebarProps) {
-  const [portfolios, setPortfolios] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    list_portfolios().then((newPortfolios) => {
-      setPortfolios(newPortfolios);
-    });
-  }, []);
-
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <PortfolioSwitcher
-          portfolios={portfolios}
-          defaultPortfolio={portfolios[0]}
-        />
+        <PortfolioSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

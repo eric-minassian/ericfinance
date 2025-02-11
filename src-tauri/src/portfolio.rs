@@ -1,8 +1,11 @@
 use std::{fs, path::PathBuf, sync::LazyLock};
 
 use dirs::data_local_dir;
+use rusqlite::Connection;
 
 use crate::IDENTIFIER;
+
+const SETUP_SQL: &str = include_str!("../setup.sql");
 
 static PORTFOLIO_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
     let mut path = data_local_dir().expect("Failed to get data local dir");
@@ -28,6 +31,20 @@ pub fn list_portfolios() -> Vec<String> {
     vec![]
 }
 
-
 #[tauri::command]
-pub fn create_portfolio(name: String, password: 
+pub fn create_portfolio(name: String, password: String) -> Result<(), ()> {
+    let mut path = PORTFOLIO_DIR.clone();
+    path.push(format!("{}.sqlite", name));
+
+    let connection = Connection::open(&path).expect("Failed to create portfolio database");
+
+    connection
+        .execute_batch(&format!("PRAGMA key = '{}';", password))
+        .expect("Failed to set password");
+
+    connection
+        .execute_batch(SETUP_SQL)
+        .expect("Failed to execute setup.sql");
+
+    Ok(())
+}
