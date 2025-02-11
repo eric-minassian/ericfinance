@@ -1,5 +1,6 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown, Plus, Wallet } from "lucide-react";
-import * as React from "react";
+import { z } from "zod";
 
 import {
   DropdownMenu,
@@ -10,42 +11,136 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
+  SidebarMenuButton,
   sidebarMenuButtonVariants,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { list_portfolios } from "@/features/portfolio";
+import {
+  createPortfolioSchema,
+  selectPortfolioSchema,
+} from "@/lib/schemas/portfolio";
 import { cn } from "@/lib/utils";
+import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "./ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "./ui/form";
+import { Input } from "./ui/input";
 
 export function PortfolioSwitcher({}) {
-  const [portfolios, setPortfolios] = React.useState<string[]>([]);
-  const [selectedPortfolio, setSelectedPortfolio] = React.useState<
-    string | null
-  >(null);
+  const [portfolios, setPortfolios] = useState<string[]>([]);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<string | null>(
+    null
+  );
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createPortfolio, setCreatePortfolio] = useState(false);
 
-  React.useEffect(() => {
-    list_portfolios().then((newPortfolios) => {
-      setPortfolios(newPortfolios);
-      setSelectedPortfolio(newPortfolios[0] || null);
-    });
+  useEffect(() => {
+    invoke("list_portfolios")
+      .then((newPortfolios) => {
+        setPortfolios(newPortfolios as string[]);
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error(error);
+      });
   }, []);
+
+  const createPortfolioForm = useForm<z.infer<typeof createPortfolioSchema>>({
+    resolver: zodResolver(createPortfolioSchema),
+    defaultValues: {
+      name: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  async function onCreatePortfolioSubmit(
+    values: z.infer<typeof createPortfolioSchema>
+  ) {
+    try {
+      await invoke("create_portfolio", {
+        name: values.name,
+        password: values.password,
+      });
+
+      const newPortfolios = (await invoke("list_portfolios")) as string[];
+
+      setPortfolios(newPortfolios);
+      setSelectedPortfolio(values.name);
+      toast.success("Portfolio created");
+
+      createPortfolioForm.reset();
+    } catch (error) {
+      console.error(error);
+      toast.error(error as string);
+    }
+
+    setDialogOpen(false);
+  }
+
+  function onCreatePortfolio() {
+    setCreatePortfolio(true);
+    setDialogOpen(true);
+  }
+
+  const selectPortfolioForm = useForm<z.infer<typeof selectPortfolioSchema>>({
+    resolver: zodResolver(selectPortfolioSchema),
+    defaultValues: {
+      name: "",
+      password: "",
+    },
+  });
+
+  async function onSelectPortfolioSubmit(
+    values: z.infer<typeof selectPortfolioSchema>
+  ) {
+    try {
+      await invoke("select_portfolio", {
+        name: values.name,
+        password: values.password,
+      });
+
+      setSelectedPortfolio(values.name);
+      toast.success("Portfolio selected");
+    } catch (error) {
+      console.error(error);
+      toast.error(error as string);
+    }
+
+    selectPortfolioForm.reset();
+    setDialogOpen(false);
+  }
+
+  function onSelectPortfolio(portfolio: string) {
+    setCreatePortfolio(false);
+    selectPortfolioForm.setValue("name", portfolio);
+
+    setDialogOpen(true);
+  }
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <Dialog>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DropdownMenu>
-            <DropdownMenuTrigger className="w-full" asChild>
-              <button
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
                 className={cn(
                   sidebarMenuButtonVariants({ size: "lg" }),
                   "data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -59,7 +154,7 @@ export function PortfolioSwitcher({}) {
                   {selectedPortfolio && <span>{selectedPortfolio}</span>}
                 </div>
                 <ChevronsUpDown className="ml-auto" />
-              </button>
+              </SidebarMenuButton>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className="w-[--radix-dropdown-menu-trigger-width]"
@@ -69,7 +164,7 @@ export function PortfolioSwitcher({}) {
                 portfolios.map((portfolio) => (
                   <DropdownMenuItem
                     key={portfolio}
-                    onSelect={() => setSelectedPortfolio(portfolio)}
+                    onSelect={() => onSelectPortfolio(portfolio)}
                   >
                     {portfolio}
                     {portfolio === selectedPortfolio && (
@@ -82,7 +177,7 @@ export function PortfolioSwitcher({}) {
               )}
 
               <DropdownMenuSeparator />
-              <DialogTrigger asChild>
+              <button onClick={onCreatePortfolio}>
                 <DropdownMenuItem className="gap-2 p-2">
                   <div className="flex size-6 items-center justify-center rounded-md border bg-background">
                     <Plus className="size-4" />
@@ -91,24 +186,117 @@ export function PortfolioSwitcher({}) {
                     Add portfolio
                   </div>
                 </DropdownMenuItem>
-              </DialogTrigger>
+              </button>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create new portfolio</DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </DialogDescription>
-            </DialogHeader>
-
-            <DialogFooter>
-              <Button type="submit">Save changes</Button>
-            </DialogFooter>
-          </DialogContent>
+          {createPortfolio
+            ? AddPortfolioDialog({
+                form: createPortfolioForm,
+                onSubmit: onCreatePortfolioSubmit,
+              })
+            : SelectPortfolioDialog({
+                form: selectPortfolioForm,
+                onSubmit: onSelectPortfolioSubmit,
+              })}
         </Dialog>
       </SidebarMenuItem>
     </SidebarMenu>
+  );
+}
+
+interface AddPortfolioDialogProps {
+  form: UseFormReturn<z.infer<typeof createPortfolioSchema>>;
+  onSubmit: (values: z.infer<typeof createPortfolioSchema>) => void;
+}
+
+function AddPortfolioDialog({ form, onSubmit }: AddPortfolioDialogProps) {
+  return (
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Add portfolio</DialogTitle>
+      </DialogHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="my-portfolio" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="********" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="********" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <DialogFooter>
+            <Button type="submit">Create</Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogContent>
+  );
+}
+
+interface SelectPortfolioDialogProps {
+  form: UseFormReturn<z.infer<typeof selectPortfolioSchema>>;
+  onSubmit: (values: z.infer<typeof selectPortfolioSchema>) => void;
+}
+
+function SelectPortfolioDialog({ form, onSubmit }: SelectPortfolioDialogProps) {
+  return (
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Select portfolio</DialogTitle>
+      </DialogHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="********" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <DialogFooter>
+            <Button type="submit">Select</Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogContent>
   );
 }

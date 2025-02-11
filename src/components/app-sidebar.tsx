@@ -4,6 +4,7 @@ import { PortfolioSwitcher } from "@/components/portfolio-switcher";
 import {
   Sidebar,
   SidebarContent,
+  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -11,6 +12,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { LucideIcon } from "lucide-react";
+
+import type { JSX } from "react";
 
 interface SidebarItem {
   title: string;
@@ -35,19 +38,21 @@ export function AppSidebar({
         <PortfolioSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
-          {sidebarItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                isActive={item.isActive}
-                onClick={() => setCurrentComponent(<item.component />)}
-              >
-                <item.icon />
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <SidebarGroup>
+          <SidebarMenu>
+            {sidebarItems.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  isActive={item.isActive}
+                  onClick={() => setCurrentComponent(<item.component />)}
+                >
+                  <item.icon />
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

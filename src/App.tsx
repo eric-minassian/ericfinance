@@ -11,6 +11,7 @@ import Import from "@/pages/Import";
 import Transactions from "@/pages/Transactions";
 import { ImportIcon, TableIcon } from "lucide-react";
 import { useState } from "react";
+import { Toaster } from "./components/ui/sonner";
 
 const sidebarItems = [
   {
@@ -43,7 +44,10 @@ export default function App() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <h1 className="text-lg font-semibold">EricFinance</h1>
         </header>
-        <main className="flex-1 p-4 overflow-auto">{currentComponent}</main>
+        <main className="flex-1 p-4 overflow-auto">
+          {currentComponent}
+          <Toaster richColors />
+        </main>
       </SidebarInset>
     </SidebarProvider>
   );
