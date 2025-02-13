@@ -11,6 +11,8 @@ import Import from "@/pages/Import";
 import Transactions from "@/pages/Transactions";
 import { ImportIcon, TableIcon } from "lucide-react";
 import { useState } from "react";
+import { ModeToggle } from "./components/mode-toggle";
+import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/sonner";
 
 const sidebarItems = [
@@ -32,24 +34,30 @@ export default function App() {
   );
 
   return (
-    <SidebarProvider>
-      <AppSidebar
-        sidebarItems={sidebarItems}
-        setCurrentComponent={setCurrentComponent}
-      />
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <SidebarProvider>
+        <AppSidebar
+          sidebarItems={sidebarItems}
+          setCurrentComponent={setCurrentComponent}
+        />
 
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <h1 className="text-lg font-semibold">EricFinance</h1>
-        </header>
-        <main className="flex-1 p-4 overflow-auto">
-          {currentComponent}
-          <Toaster richColors />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <h1 className="text-lg font-semibold">EricFinance</h1>
+
+            <div className="flex-1" />
+
+            <ModeToggle />
+          </header>
+          <main className="flex-1 p-4 overflow-auto">
+            {currentComponent}
+            <Toaster richColors />
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </ThemeProvider>
   );
 }
 
