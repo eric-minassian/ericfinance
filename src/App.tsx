@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/sidebar";
 import Import from "@/pages/Import";
 import Transactions from "@/pages/Transactions";
-import { ImportIcon, TableIcon } from "lucide-react";
+import { ImportIcon, SettingsIcon, TableIcon } from "lucide-react";
 import { useState } from "react";
 import { ModeToggle } from "./components/mode-toggle";
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from "./components/ui/sonner";
+import Settings from "./pages/Settings";
 
 const sidebarItems = [
   {
@@ -25,6 +26,11 @@ const sidebarItems = [
     title: "Import",
     icon: ImportIcon,
     component: Import,
+  },
+  {
+    title: "Settings",
+    icon: SettingsIcon,
+    component: Settings,
   },
 ];
 

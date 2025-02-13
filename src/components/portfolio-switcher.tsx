@@ -19,8 +19,8 @@ import {
   createPortfolioSchema,
   selectPortfolioSchema,
 } from "@/lib/schemas/portfolio";
+import { usePortfolioStore } from "@/lib/stores/portfolio-store";
 import { cn } from "@/lib/utils";
-import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { toast } from "sonner";
@@ -42,24 +42,23 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 
-export function PortfolioSwitcher({}) {
-  const [portfolios, setPortfolios] = useState<string[]>([]);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<string | null>(
-    null
-  );
+export function PortfolioSwitcher() {
+  const {
+    portfolios,
+    selectedPortfolio,
+    fetchPortfolios,
+    createPortfolio,
+    selectPortfolio,
+  } = usePortfolioStore();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [createPortfolio, setCreatePortfolio] = useState(false);
+  const [createPortfolioDialog, setCreatePortfolioDialog] = useState(false);
 
   useEffect(() => {
-    invoke("list_portfolios")
-      .then((newPortfolios) => {
-        setPortfolios(newPortfolios as string[]);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error(error);
-      });
-  }, []);
+    fetchPortfolios().catch((error) => {
+      console.error(error);
+      toast.error(error);
+    });
+  }, [fetchPortfolios]);
 
   const createPortfolioForm = useForm<z.infer<typeof createPortfolioSchema>>({
     resolver: zodResolver(createPortfolioSchema),
@@ -74,28 +73,18 @@ export function PortfolioSwitcher({}) {
     values: z.infer<typeof createPortfolioSchema>
   ) {
     try {
-      await invoke("create_portfolio", {
-        name: values.name,
-        password: values.password,
-      });
-
-      const newPortfolios = (await invoke("list_portfolios")) as string[];
-
-      setPortfolios(newPortfolios);
-      setSelectedPortfolio(values.name);
+      await createPortfolio(values.name, values.password);
       toast.success("Portfolio created");
-
       createPortfolioForm.reset();
     } catch (error) {
       console.error(error);
       toast.error(error as string);
     }
-
     setDialogOpen(false);
   }
 
   function onCreatePortfolio() {
-    setCreatePortfolio(true);
+    setCreatePortfolioDialog(true);
     setDialogOpen(true);
   }
 
@@ -111,24 +100,18 @@ export function PortfolioSwitcher({}) {
     values: z.infer<typeof selectPortfolioSchema>
   ) {
     try {
-      await invoke("select_portfolio", {
-        name: values.name,
-        password: values.password,
-      });
-
-      setSelectedPortfolio(values.name);
+      await selectPortfolio(values.name, values.password);
       toast.success("Portfolio selected");
     } catch (error) {
       console.error(error);
       toast.error(error as string);
     }
-
     selectPortfolioForm.reset();
     setDialogOpen(false);
   }
 
   function onSelectPortfolio(portfolio: string) {
-    setCreatePortfolio(false);
+    setCreatePortfolioDialog(false);
     selectPortfolioForm.setValue("name", portfolio);
 
     setDialogOpen(true);
@@ -189,7 +172,7 @@ export function PortfolioSwitcher({}) {
               </button>
             </DropdownMenuContent>
           </DropdownMenu>
-          {createPortfolio
+          {createPortfolioDialog
             ? AddPortfolioDialog({
                 form: createPortfolioForm,
                 onSubmit: onCreatePortfolioSubmit,

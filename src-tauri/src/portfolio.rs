@@ -8,7 +8,7 @@ use dirs::data_local_dir;
 use rusqlite::Connection;
 use tauri::State;
 
-use crate::{AppState, IDENTIFIER};
+use crate::{AppState, PortfolioAppState, IDENTIFIER};
 
 const SETUP_SQL: &str = include_str!("../setup.sql");
 
@@ -53,7 +53,7 @@ fn create_portfolio_inner(
         .map_err(|e| format!("Failed to execute setup SQL: {}", e))?;
 
     let mut state = state.lock().map_err(|_| "Failed to lock app state")?;
-    state.connection = Some(connection);
+    state.portfolio = Some(PortfolioAppState { name, connection });
 
     Ok(())
 }
@@ -93,11 +93,33 @@ fn select_portfolio_inner(
         })
         .map_err(|e| format!("Failed to unlock database: {}", e))?;
 
-    let mut state: std::sync::MutexGuard<'_, AppState> =
-        state.lock().map_err(|_| "Failed to lock app state")?;
-    state.connection = Some(connection);
+    let mut state = state.lock().map_err(|_| "Failed to lock app state")?;
+    state.portfolio = Some(PortfolioAppState { name, connection });
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn delete_portfolio(state: State<'_, Mutex<AppState>>, name: String) -> Result<(), String> {
+    delete_portfolio_inner(&PORTFOLIO_DIR, state.inner(), name)
+}
+
+fn delete_portfolio_inner(
+    path: &PathBuf,
+    state: &Mutex<AppState>,
+    name: String,
+) -> Result<(), String> {
+    let mut path = path.clone();
+    path.push(format!("{}.sqlite", name));
+
+    let mut state = state.lock().map_err(|_| "Failed to lock app state")?;
+    if let Some(portfolio) = &state.portfolio {
+        if portfolio.name == name {
+            state.portfolio = None;
+        }
+    }
+
+    fs::remove_file(&path).map_err(|e| format!("Failed to delete portfolio: {}", e))
 }
 
 #[tauri::command]
@@ -135,7 +157,7 @@ mod tests {
     impl TestContext {
         fn new() -> Self {
             let temp_dir = TempDir::new().unwrap();
-            let state = Mutex::new(AppState { connection: None });
+            let state = Mutex::new(AppState { portfolio: None });
             Self { temp_dir, state }
         }
 
@@ -207,7 +229,7 @@ mod tests {
 
         // Verify connection is set in state
         let state_guard = ctx.state.lock().unwrap();
-        assert!(state_guard.connection.is_some());
+        assert!(state_guard.portfolio.is_some());
     }
 
     #[test]
@@ -245,6 +267,31 @@ mod tests {
         );
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Failed to unlock database"));
+    }
+
+    #[test]
+    fn test_delete_portfolio() {
+        let ctx = TestContext::new();
+
+        // Create a portfolio
+        let _ = create_portfolio_inner(
+            &ctx.path(),
+            &ctx.state,
+            "delete_test".to_string(),
+            "password123".to_string(),
+        );
+
+        // Delete the portfolio
+        let result = delete_portfolio_inner(&ctx.path(), &ctx.state, "delete_test".to_string());
+        assert!(result.is_ok());
+
+        // Verify portfolio file was deleted
+        let path = ctx.path().join("delete_test.sqlite");
+        assert!(!path.exists());
+
+        // Verify state was cleared
+        let state_guard = ctx.state.lock().unwrap();
+        assert!(state_guard.portfolio.is_none());
     }
 
     #[test]
