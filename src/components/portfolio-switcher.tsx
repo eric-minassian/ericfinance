@@ -139,10 +139,7 @@ export function PortfolioSwitcher() {
                 <ChevronsUpDown className="ml-auto" />
               </SidebarMenuButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-[--radix-dropdown-menu-trigger-width]"
-              align="start"
-            >
+            <DropdownMenuContent className="w-[240px]" align="start">
               {portfolios.length ? (
                 portfolios.map((portfolio) => (
                   <DropdownMenuItem
@@ -160,16 +157,14 @@ export function PortfolioSwitcher() {
               )}
 
               <DropdownMenuSeparator />
-              <button onClick={onCreatePortfolio}>
-                <DropdownMenuItem className="gap-2 p-2">
-                  <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                    <Plus className="size-4" />
-                  </div>
-                  <div className="font-medium text-muted-foreground">
-                    Add portfolio
-                  </div>
-                </DropdownMenuItem>
-              </button>
+              <DropdownMenuItem onClick={onCreatePortfolio}>
+                <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                  <Plus className="size-4" />
+                </div>
+                <div className="font-medium text-muted-foreground">
+                  Add portfolio
+                </div>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           {createPortfolioDialog
