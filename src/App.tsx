@@ -46,14 +46,14 @@ function App() {
               />
               <div className="flex gap-2">
                 <Button
-                  onClick={() => {
+                  onClick={async () => {
                     if (!db) {
                       alert("Please select a SQLite file first.");
                       return;
                     }
                     try {
-                      const result = db.exec(query);
-                      console.log(result);
+                      const result = db.select();
+                      console.log("Query result:", result);
                     } catch (error) {
                       console.error("Error executing query:", error);
                     }
