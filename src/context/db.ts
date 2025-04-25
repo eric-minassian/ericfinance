@@ -1,9 +1,9 @@
+import { SQLJsDatabase } from "drizzle-orm/sql-js";
 import { createContext } from "react";
-import { Database } from "sql.js";
 
 type DBContextType = {
   setFile: (file: File | null) => void;
-  db: Database | null;
+  db: SQLJsDatabase | null;
   exportDB: () => void;
   createEmptyDB: () => void;
 };

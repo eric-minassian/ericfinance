@@ -1,17 +1,20 @@
 import { DBContext } from "@/context/db";
+import { drizzle, SQLJsDatabase } from "drizzle-orm/sql-js";
 import { useEffect, useState } from "react";
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 
 export function DBProvider({ children }: { children: React.ReactNode }) {
   const [file, setFile] = useState<File | null>(null);
-  const [db, setDB] = useState<Database | null>(null);
+  const [db, setDB] = useState<SQLJsDatabase | null>(null);
+  const [sqlDb, setSqlDb] = useState<Database | null>(null);
   const [sql, setSql] = useState<SqlJsStatic>();
 
   const createEmptyDB = () => {
     if (!sql) return;
     try {
       const newDb = new sql.Database();
-      setDB(newDb);
+      setDB(drizzle(newDb));
+      setSqlDb(newDb);
       setFile(null);
       console.log("Empty database created successfully");
     } catch (error) {
@@ -20,8 +23,8 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   };
 
   const exportDB = () => {
-    if (!db) return;
-    const data = db.export();
+    if (!sqlDb) return;
+    const data = sqlDb.export();
     const blob = new Blob([data], { type: "application/x-sqlite3" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -35,10 +38,10 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function initializeDatabase() {
-      const SQL = await initSqlJs({
+      const sqlPromise = await initSqlJs({
         locateFile: (file) => `/sql.js/${file}`,
       });
-      setSql(SQL);
+      setSql(sqlPromise);
     }
 
     initializeDatabase();
@@ -54,12 +57,15 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         const arrayBuffer = reader.result as ArrayBuffer;
         const uint8Array = new Uint8Array(arrayBuffer);
         try {
-          const db = new sql.Database(uint8Array);
+          const sqlDb = new sql.Database(uint8Array);
+          const db = drizzle(sqlDb);
           setDB(db);
+          setSqlDb(sqlDb);
           console.log("Database initialized successfully");
         } catch (error) {
           console.error("Error initializing database:", error);
           setDB(null);
+          setSqlDb(null);
         }
       };
       reader.readAsArrayBuffer(file);
