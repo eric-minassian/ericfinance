@@ -1,4 +1,6 @@
 import { DBContext } from "@/context/db";
+import { journal, migrations } from "@/lib/db/migrations";
+import { migrate } from "@/lib/db/migrator/browser-migrate";
 import { drizzle, SQLJsDatabase } from "drizzle-orm/sql-js";
 import { useEffect, useState } from "react";
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
@@ -9,11 +11,15 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   const [sqlDb, setSqlDb] = useState<Database | null>(null);
   const [sql, setSql] = useState<SqlJsStatic>();
 
-  const createEmptyDB = () => {
+  const createEmptyDB = async () => {
     if (!sql) return;
     try {
       const newDb = new sql.Database();
-      setDB(drizzle(newDb));
+      const db = drizzle(newDb);
+
+      await migrate(db, { journal, migrations });
+
+      setDB(db);
       setSqlDb(newDb);
       setFile(null);
       console.log("Empty database created successfully");

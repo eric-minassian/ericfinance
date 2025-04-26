@@ -9,9 +9,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "shadcn:add": "pnpm dlx shadcn@latest add",
-    "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/sql.js/"
+    "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/sql.js/",
+    "db:generate": "drizzle-kit generate && ts-node ./scripts/generate-migrations-index.ts"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
     "@radix-ui/react-slot": "^1.2.0",
     "@tailwindcss/vite": "^4.1.4",
     "class-variance-authority": "^0.7.1",
@@ -31,10 +33,12 @@
     "@types/react-dom": "^19.0.4",
     "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-react-swc": "^3.8.0",
+    "drizzle-kit": "^0.31.0",
     "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "ts-node": "^10.9.2",
     "tw-animate-css": "^1.2.8",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
