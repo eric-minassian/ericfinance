@@ -5,12 +5,12 @@ type DBContextType = {
   setFile: (file: File | null) => void;
   db: SQLJsDatabase | null;
   exportDB: () => void;
-  createEmptyDB: () => void;
+  createEmptyDB: () => Promise<void>;
 };
 
 export const DBContext = createContext<DBContextType>({
   setFile: () => null,
   db: null,
   exportDB: () => null,
-  createEmptyDB: () => null,
+  createEmptyDB: () => Promise.resolve(),
 });
