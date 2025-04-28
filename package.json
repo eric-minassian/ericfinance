@@ -22,6 +22,8 @@
     "@radix-ui/react-slot": "^1.2.0",
     "@radix-ui/react-tooltip": "^1.2.4",
     "@tailwindcss/vite": "^4.1.4",
+    "@tanstack/react-form": "^1.8.0",
+    "@zod/mini": "4.0.0-beta.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.43.1",
