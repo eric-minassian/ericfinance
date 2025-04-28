@@ -1,4 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
+import { type InferSelectModel } from "drizzle-orm";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const accountsTable = sqliteTable("accounts", {
@@ -8,6 +9,8 @@ export const accountsTable = sqliteTable("accounts", {
 
   name: text("name").notNull(),
 });
+
+export type Accounts = InferSelectModel<typeof accountsTable>;
 
 export const transactionsTable = sqliteTable("transactions", {
   id: text("id")
@@ -23,3 +26,5 @@ export const transactionsTable = sqliteTable("transactions", {
   payee: text("payee").notNull(),
   notes: text("notes"),
 });
+
+export type Transactions = InferSelectModel<typeof transactionsTable>;
