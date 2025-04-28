@@ -12,7 +12,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   const [sql, setSql] = useState<SqlJsStatic>();
 
   useEffect(() => {
-    if (process.env.NODE_ENV != "development") {
+    if (process.env.NODE_ENV !== "development") {
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         if (db) {
           e.preventDefault();
