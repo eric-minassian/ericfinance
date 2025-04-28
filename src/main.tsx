@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { Toaster } from "./components/ui/sonner.tsx";
 import "./index.css";
 import { DBProvider } from "./providers/db.tsx";
 import { ThemeProvider } from "./providers/theme.tsx";
@@ -10,6 +11,7 @@ createRoot(document.getElementById("root")!).render(
     <DBProvider>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <App />
+        <Toaster richColors />
       </ThemeProvider>
     </DBProvider>
   </StrictMode>
