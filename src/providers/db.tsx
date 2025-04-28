@@ -12,17 +12,19 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   const [sql, setSql] = useState<SqlJsStatic>();
 
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (db) {
-        e.preventDefault();
-        e.returnValue = true;
-      }
-    };
+    if (process.env.NODE_ENV != "development") {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        if (db) {
+          e.preventDefault();
+          e.returnValue = true;
+        }
+      };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      };
+    }
   }, [db]);
 
   const createEmptyDB = async () => {

@@ -20,24 +20,20 @@ export default function IndexPage() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <div className="space-y-4 text-center">
+        <div className="space-y-4 text-center mb-6">
           <h1 className="text-2xl font-bold">Welcome to EricFinance</h1>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground">
             Select your database file to get started
           </p>
         </div>
         <div className="space-y-2">
           <Input type="file" accept=".db" onChange={handleFileChange} />
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground my-2">or</p>
-            <Button
-              variant="outline"
-              onClick={createEmptyDB}
-              className="w-full"
-            >
-              Create New Database
-            </Button>
+          <div className="text-center my-2">
+            <p className="text-sm text-muted-foreground">or</p>
           </div>
+          <Button variant="outline" onClick={createEmptyDB} className="w-full">
+            Create New Database
+          </Button>
         </div>
       </div>
     </div>
