@@ -1,9 +1,14 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useDB } from "@/hooks/db";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Redirect } from "wouter";
 
-export function DBSelect() {
-  const { setFile, createEmptyDB } = useDB();
+export default function IndexPage() {
+  const { db, setFile, createEmptyDB } = useDB();
+
+  if (db) {
+    return <Redirect to="/dashboard" />;
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
