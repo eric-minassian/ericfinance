@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Route, Switch } from "wouter";
+import CreateAccountPage from "./pages/(dashboard)/accounts/create/page";
 import AccountsPage from "./pages/(dashboard)/accounts/page";
 import DashboardPage from "./pages/(dashboard)/dashboard/page";
 import DashboardLayout from "./pages/(dashboard)/layout";
@@ -18,6 +19,10 @@ const routes = [
   {
     path: "/accounts",
     components: [DashboardLayout, AccountsPage],
+  },
+  {
+    path: "/accounts/create",
+    components: [DashboardLayout, CreateAccountPage],
   },
   {
     path: "*",
