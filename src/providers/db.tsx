@@ -51,7 +51,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "database.sqlite";
+    a.download = "database.db";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
