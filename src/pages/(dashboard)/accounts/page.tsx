@@ -1,5 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { ContentLayout } from "@/components/ui/content-layout";
+import { Header } from "@/components/ui/header";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
 import { Account, accountsTable } from "@/lib/db/schema";
 import { useEffect, useState } from "react";
@@ -32,19 +41,36 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <div className="flex justify-end">
-        <Button asChild>
-          <Link href="/accounts/create">Create Account</Link>
-        </Button>
-      </div>
-      {accounts.map((account) => (
-        <Card key={account.id}>
-          <CardHeader>
-            <CardTitle>{account.name}</CardTitle>
-          </CardHeader>
-        </Card>
-      ))}
-    </div>
+    <ContentLayout
+      header={
+        <Header
+          description="Manage your accounts here."
+          actions={
+            <Button asChild>
+              <Link href="/accounts/create">Create Account</Link>
+            </Button>
+          }
+        >
+          Accounts
+        </Header>
+      }
+    >
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[100px]">ID</TableHead>
+            <TableHead>Name</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {accounts.map((account) => (
+            <TableRow key={account.id}>
+              <TableCell className="font-medium">{account.id}</TableCell>
+              <TableCell>{account.name}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </ContentLayout>
   );
 }
