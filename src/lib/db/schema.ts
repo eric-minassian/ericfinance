@@ -42,4 +42,35 @@ export const transactionSchema = z.object({
   payee: z.string(),
   notes: z.string().optional(),
 });
-export type Transactions = InferSelectModel<typeof transactionsTable>;
+export const transactionFormSchema = z.object({
+  id: z.string().cuid2(),
+  accountId: z.string().cuid2(),
+  amount: z
+    .string()
+    .refine(
+      (val) => {
+        const [int, decimal = ""] = val.split(".");
+        return (
+          int.length > 0 &&
+          decimal.length <= 2 &&
+          !isNaN(parseInt(int)) &&
+          !isNaN(parseInt(decimal)) &&
+          parseInt(decimal) >= 0 &&
+          parseInt(decimal) <= 99
+        );
+      },
+      { message: "Invalid amount" }
+    )
+    .transform((val) => {
+      const [int, decimal = ""] = val.split(".");
+      const decimalPad = decimal.padEnd(2, "0");
+      return parseInt(int + decimalPad);
+    }),
+  date: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), { message: "Invalid date" })
+    .transform((val) => new Date(val)),
+  payee: z.string().min(1, { message: "Payee is required" }),
+  notes: z.string().transform((val) => (val === "" ? undefined : val)),
+});
+export type Transaction = InferSelectModel<typeof transactionsTable>;
