@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAppForm } from "@/components/ui/tanstack-form";
 import { useDB } from "@/hooks/db";
+import { useAppForm } from "@/hooks/form";
 import { accountSchema, accountsTable } from "@/lib/db/schema";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -61,28 +61,40 @@ export function CreateAccountForm() {
             <form.AppField
               name="name"
               children={(field) => (
-                <field.FormItem>
-                  <field.FormLabel>Name</field.FormLabel>
-                  <field.FormControl>
+                <field.FormFieldItem>
+                  <field.FormFieldLabel>Name</field.FormFieldLabel>
+                  <field.FormFieldControl>
                     <Input
                       placeholder="AMEX Platinum"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                     />
-                  </field.FormControl>
-                  <field.FormDescription>
+                  </field.FormFieldControl>
+                  <field.FormFieldDescription>
                     This is the name of the account. It can be anything you
                     want.
-                  </field.FormDescription>
-                  <field.FormMessage />
-                </field.FormItem>
+                  </field.FormFieldDescription>
+                  <field.FormFieldMessage />
+                </field.FormFieldItem>
               )}
             />
           </CardContent>
         </Card>
-        <div className="flex justify-end">
-          <Button type="submit">Submit</Button>
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              form.reset();
+              history.back();
+            }}
+          >
+            Cancel
+          </Button>
+          <form.FormButton>
+            {({ isSubmitting }) => (isSubmitting ? "Submitting..." : "Submit")}
+          </form.FormButton>
         </div>
       </form>
     </form.AppForm>
