@@ -1,9 +1,15 @@
 import { CreateAccountForm } from "@/components/forms/accounts/create-account-form";
+import { ContentLayout } from "@/components/ui/content-layout";
+import { Header } from "@/components/ui/header";
 
 export default function CreateAccountPage() {
   return (
-    <div className="flex flex-col gap-4 p-4 flex-1">
+    <ContentLayout
+      header={
+        <Header description="Create a new account.">Create Account</Header>
+      }
+    >
       <CreateAccountForm />
-    </div>
+    </ContentLayout>
   );
 }

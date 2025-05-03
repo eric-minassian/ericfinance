@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAppForm } from "@/components/ui/tanstack-form";
 import { useDB } from "@/hooks/db";
@@ -51,28 +52,38 @@ export function CreateAccountForm() {
 
   return (
     <form.AppForm>
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        <form.AppField
-          name="name"
-          children={(field) => (
-            <field.FormItem>
-              <field.FormLabel>Name</field.FormLabel>
-              <field.FormControl>
-                <Input
-                  placeholder="AMEX Platinum"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                />
-              </field.FormControl>
-              <field.FormDescription>
-                This is the name of the account. It can be anything you want.
-              </field.FormDescription>
-              <field.FormMessage />
-            </field.FormItem>
-          )}
-        />
-        <Button type="submit">Submit</Button>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form.AppField
+              name="name"
+              children={(field) => (
+                <field.FormItem>
+                  <field.FormLabel>Name</field.FormLabel>
+                  <field.FormControl>
+                    <Input
+                      placeholder="AMEX Platinum"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                  </field.FormControl>
+                  <field.FormDescription>
+                    This is the name of the account. It can be anything you
+                    want.
+                  </field.FormDescription>
+                  <field.FormMessage />
+                </field.FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+        <div className="flex justify-end">
+          <Button type="submit">Submit</Button>
+        </div>
       </form>
     </form.AppForm>
   );
