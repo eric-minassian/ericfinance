@@ -1,28 +1,22 @@
+import FormFieldControl from "@/components/ui/form/field/form-field-control";
+import FormFieldControlIcon from "@/components/ui/form/field/form-field-control-icon";
+import FormFieldDescription from "@/components/ui/form/field/form-field-description";
+import FormFieldItem from "@/components/ui/form/field/form-field-item";
+import FormFieldLabel from "@/components/ui/form/field/form-field-label";
+import FormFieldMessage from "@/components/ui/form/field/form-field-message";
+import FormButton from "@/components/ui/form/form-button";
 import { createFormHook, createFormHookContexts } from "@tanstack/react-form";
-import React from "react";
 
 const fieldComponents = {
-  FormFieldItem: React.lazy(
-    () => import("@/components/ui/form/field/form-field-item")
-  ),
-  FormFieldLabel: React.lazy(
-    () => import("@/components/ui/form/field/form-field-label")
-  ),
-  FormFieldControl: React.lazy(
-    () => import("@/components/ui/form/field/form-field-control")
-  ),
-  FormFieldControlIcon: React.lazy(
-    () => import("@/components/ui/form/field/form-field-control-icon")
-  ),
-  FormFieldDescription: React.lazy(
-    () => import("@/components/ui/form/field/form-field-description")
-  ),
-  FormFieldMessage: React.lazy(
-    () => import("@/components/ui/form/field/form-field-message")
-  ),
+  FormFieldItem,
+  FormFieldLabel,
+  FormFieldControl,
+  FormFieldControlIcon,
+  FormFieldDescription,
+  FormFieldMessage,
 };
 const formComponents = {
-  FormButton: React.lazy(() => import("@/components/ui/form/form-button")),
+  FormButton,
 };
 
 export const { fieldContext, formContext, useFieldContext, useFormContext } =
