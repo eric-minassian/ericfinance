@@ -35,7 +35,10 @@ export default function AccountTransactionsPage({
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const data = await db!.select().from(transactionsTable);
+        const data = await db!
+          .select()
+          .from(transactionsTable)
+          .where(eq(transactionsTable.accountId, params.accountId));
         setTransactions(data);
       } catch (error) {
         console.error(error);
@@ -45,7 +48,7 @@ export default function AccountTransactionsPage({
       }
     };
     fetchTransactions();
-  }, [db]);
+  }, [db, params.accountId]);
 
   async function handleDeleteTransaction(id: Transaction["id"]) {
     try {
