@@ -9,8 +9,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Header } from "@/components/ui/header";
+import { SpaceBetween } from "@/components/ui/space-between";
 import { useDB } from "@/hooks/db";
-import { Transaction, transactionsTable } from "@/lib/db/schema";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transaction";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";
 import { MoreHorizontal } from "lucide-react";
@@ -152,11 +153,22 @@ export default function AccountTransactionsPage({
         <Header
           description="Manage your transactions here."
           actions={
-            <Button asChild>
-              <Link href={`/accounts/${params.accountId}/transactions/create`}>
-                Create Transaction
-              </Link>
-            </Button>
+            <SpaceBetween>
+              <Button asChild>
+                <Link
+                  href={`/accounts/${params.accountId}/transactions/import`}
+                >
+                  Import Transactions
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link
+                  href={`/accounts/${params.accountId}/transactions/create`}
+                >
+                  Create Transaction
+                </Link>
+              </Button>
+            </SpaceBetween>
           }
         >
           Transactions

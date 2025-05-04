@@ -1,10 +1,12 @@
 import { Route, Switch } from "wouter";
 import AccountPage from "./pages/(dashboard)/accounts/[accountId]/page";
 import CreateTransactionPage from "./pages/(dashboard)/accounts/[accountId]/transactions/create/page";
+import ImportTransactionsPage from "./pages/(dashboard)/accounts/[accountId]/transactions/import/page";
 import AccountTransactionsPage from "./pages/(dashboard)/accounts/[accountId]/transactions/page";
 import CreateAccountPage from "./pages/(dashboard)/accounts/create/page";
 import AccountsPage from "./pages/(dashboard)/accounts/page";
 import DashboardPage from "./pages/(dashboard)/dashboard/page";
+import ImportsPage from "./pages/(dashboard)/imports/page";
 import DashboardLayout from "./pages/(dashboard)/layout";
 import TransactionsPage from "./pages/(dashboard)/transactions/page";
 import SiteLayout from "./pages/(site)/layout";
@@ -65,6 +67,20 @@ export default function App() {
             <CreateTransactionPage params={params} />
           </DashboardLayout>
         )}
+      </Route>
+
+      <Route path="/accounts/:accountId/transactions/import">
+        {(params) => (
+          <DashboardLayout>
+            <ImportTransactionsPage params={params} />
+          </DashboardLayout>
+        )}
+      </Route>
+
+      <Route path="/imports">
+        <DashboardLayout>
+          <ImportsPage />
+        </DashboardLayout>
       </Route>
 
       <Route>

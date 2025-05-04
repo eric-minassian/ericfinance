@@ -29,6 +29,10 @@ const data = {
       title: "Accounts",
       url: "/accounts",
     },
+    {
+      title: "Imports",
+      url: "/imports",
+    },
   ],
 };
 
@@ -67,7 +71,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive}>
-                    <Link href={item.url}>{item.title}</Link>
+                    <Link href={item.url}>
+                      <span>{item.title}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

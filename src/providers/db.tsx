@@ -1,13 +1,14 @@
 import { DBContext } from "@/context/db";
 import { journal, migrations } from "@/lib/db/migrations";
 import { migrate } from "@/lib/db/migrator/browser-migrate";
+import { schema } from "@/lib/db/schema";
 import { drizzle, SQLJsDatabase } from "drizzle-orm/sql-js";
 import { useEffect, useState } from "react";
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 
 export function DBProvider({ children }: { children: React.ReactNode }) {
   const [file, setFile] = useState<File | null>(null);
-  const [db, setDB] = useState<SQLJsDatabase | null>(null);
+  const [db, setDB] = useState<SQLJsDatabase<typeof schema> | null>(null);
   const [sqlDb, setSqlDb] = useState<Database | null>(null);
   const [sql, setSql] = useState<SqlJsStatic>();
 
@@ -31,7 +32,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
     if (!sql) return;
     try {
       const newDb = new sql.Database();
-      const db = drizzle(newDb);
+      const db = drizzle(newDb, { schema: schema });
 
       await migrate(db, { journal, migrations });
 
@@ -80,7 +81,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         const uint8Array = new Uint8Array(arrayBuffer);
         try {
           const sqlDb = new sql.Database(uint8Array);
-          const db = drizzle(sqlDb);
+          const db = drizzle(sqlDb, { schema: schema });
           setDB(db);
           setSqlDb(sqlDb);
           console.log("Database initialized successfully");

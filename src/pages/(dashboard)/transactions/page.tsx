@@ -3,34 +3,35 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import {
-  Account,
-  accountsTable,
-  Transaction,
-  transactionsTable,
-} from "@/lib/db/schema";
+import { Account, accountsTable } from "@/lib/db/schema/account";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transaction";
+import { integerCurrencyFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";
 import { useEffect, useState } from "react";
 
-type CombinedTransaction = Transaction & {
+type CombinedTransaction = Omit<Transaction, "accountId"> & {
   accountName: Account["name"];
 };
 
 export default function TransactionsPage() {
   const { db } = useDB();
   const [transactions, setTransactions] = useState<CombinedTransaction[]>([]);
+  const initialColumnVisibility = {
+    accountName: false,
+    importId: false,
+  };
 
   useEffect(() => {
     const fetchTransactions = async () => {
       const data = await db!
         .select({
           id: transactionsTable.id,
-          accountId: transactionsTable.accountId,
           amount: transactionsTable.amount,
           date: transactionsTable.date,
           payee: transactionsTable.payee,
           notes: transactionsTable.notes,
+          importId: transactionsTable.importId,
           accountName: accountsTable.name,
         })
         .from(transactionsTable)
@@ -50,6 +51,14 @@ export default function TransactionsPage() {
         <DataTableColumnHeader column={column} title="Account" />
       ),
     },
+
+    {
+      accessorKey: "amount",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Amount" />
+      ),
+      cell: ({ row }) => integerCurrencyFormat(row.getValue("amount")),
+    },
     {
       accessorKey: "date",
       header: ({ column }) => (
@@ -60,12 +69,6 @@ export default function TransactionsPage() {
       accessorKey: "payee",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Payee" />
-      ),
-    },
-    {
-      accessorKey: "amount",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Amount" />
       ),
     },
     {
@@ -84,7 +87,11 @@ export default function TransactionsPage() {
         </Header>
       }
     >
-      <DataTable data={transactions} columns={columns} />
+      <DataTable
+        data={transactions}
+        columns={columns}
+        initialColumnVisibility={initialColumnVisibility}
+      />
     </ContentLayout>
   );
 }
