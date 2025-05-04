@@ -32,6 +32,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchColumn?: keyof TData;
   filterColumns?: FilterColumn<TData>[];
+  initialColumnVisibility?: VisibilityState;
 }
 
 export function DataTable<TData, TValue>({
@@ -39,10 +40,11 @@ export function DataTable<TData, TValue>({
   data,
   searchColumn,
   filterColumns,
+  initialColumnVisibility = {},
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>(initialColumnVisibility);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );

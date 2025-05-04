@@ -7,13 +7,14 @@ import {
   Transaction,
   transactionFormSchema,
   transactionsTable,
-} from "@/lib/db/schema";
+} from "@/lib/db/schema/transaction";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
 const createTransactionFormSchema = transactionFormSchema.omit({
   id: true,
   accountId: true,
+  importId: true,
 });
 
 interface CreateTransactionFormProps {
@@ -46,15 +47,13 @@ export function CreateTransactionForm({
         return navigate("/");
       }
 
-      const [account] = await db
-        .insert(transactionsTable)
-        .values({
+      try {
+        await db.insert(transactionsTable).values({
           ...parsedValue,
           accountId,
-        })
-        .returning({ id: transactionsTable.id });
-
-      if (!account) {
+        });
+      } catch (error) {
+        console.error("Error creating transaction:", error);
         toast.error("Failed to create transaction");
         return;
       }

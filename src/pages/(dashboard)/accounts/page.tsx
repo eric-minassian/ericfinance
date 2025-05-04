@@ -11,24 +11,43 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import { Account, accountsTable } from "@/lib/db/schema";
+import { Account, accountsTable } from "@/lib/db/schema/account";
+import { transactionsTable } from "@/lib/db/schema/transaction";
+import { integerCurrencyFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { eq } from "drizzle-orm";
+import { eq, sum } from "drizzle-orm";
 import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 
+type AccountWithBalance = Account & {
+  balance: string | null;
+};
+
 export default function AccountsPage() {
   const { db } = useDB();
 
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
-        const data = await db!.select().from(accountsTable);
+        const data = await db!
+          .select({
+            id: accountsTable.id,
+            name: accountsTable.name,
+            balance: sum(transactionsTable.amount),
+          })
+          .from(accountsTable)
+          .leftJoin(
+            transactionsTable,
+            eq(transactionsTable.accountId, accountsTable.id)
+          )
+          .groupBy(accountsTable.id)
+          .orderBy(accountsTable.name);
+
         setAccounts(data);
       } catch (error) {
         console.error(error);
@@ -51,7 +70,7 @@ export default function AccountsPage() {
     }
   }
 
-  const columns: ColumnDef<Account>[] = [
+  const columns: ColumnDef<AccountWithBalance>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -95,6 +114,13 @@ export default function AccountsPage() {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Name" />
       ),
+    },
+    {
+      accessorKey: "balance",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Balance" />
+      ),
+      cell: ({ row }) => integerCurrencyFormat(row.getValue("balance")),
     },
     {
       id: "actions",

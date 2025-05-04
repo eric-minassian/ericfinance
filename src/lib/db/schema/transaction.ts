@@ -2,22 +2,8 @@ import { createId } from "@paralleldrive/cuid2";
 import { type InferSelectModel } from "drizzle-orm";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
-
-export const accountsTable = sqliteTable("accounts", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => createId()),
-
-  name: text("name").notNull(),
-});
-
-export const accountSchema = z.object({
-  id: z.string().cuid2(),
-  name: z
-    .string()
-    .min(3, { message: "Name must be at least 3 characters long" }),
-});
-export type Account = InferSelectModel<typeof accountsTable>;
+import { accountsTable } from "./account";
+import { importsTable } from "./import";
 
 export const transactionsTable = sqliteTable("transactions", {
   id: text("id")
@@ -27,6 +13,9 @@ export const transactionsTable = sqliteTable("transactions", {
   accountId: text("account_id")
     .notNull()
     .references(() => accountsTable.id, { onDelete: "cascade" }),
+  importId: text("import_id").references(() => importsTable.id, {
+    onDelete: "cascade",
+  }),
 
   amount: int("amount").notNull(),
   date: int("date", { mode: "timestamp" }).notNull(),
@@ -37,6 +26,7 @@ export const transactionsTable = sqliteTable("transactions", {
 export const transactionSchema = z.object({
   id: z.string().cuid2(),
   accountId: z.string().cuid2(),
+  importId: z.string().cuid2().optional(),
   amount: z.number().int(),
   date: z.date(),
   payee: z.string(),
@@ -45,6 +35,7 @@ export const transactionSchema = z.object({
 export const transactionFormSchema = z.object({
   id: z.string().cuid2(),
   accountId: z.string().cuid2(),
+  importId: z.string().cuid2().optional(),
   amount: z
     .string()
     .refine(
