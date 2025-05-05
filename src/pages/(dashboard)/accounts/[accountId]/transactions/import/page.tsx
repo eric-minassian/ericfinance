@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { Input } from "@/components/ui/input";
@@ -23,7 +25,8 @@ import { importsTable } from "@/lib/db/schema/import";
 import { transactionsTable } from "@/lib/db/schema/transaction";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
-import { useState } from "react";
+import { currencyFormat } from "@/lib/utils";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface ImportTransactionsPageProps {
@@ -36,22 +39,67 @@ export default function ImportTransactionsPage({
   params,
 }: ImportTransactionsPageProps) {
   const { db } = useDB();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [data, setData] = useState<ParseResult | null>(null);
   const [dateKey, setDateKey] = useState<string | null>(null);
   const [amountKey, setAmountKey] = useState<string | null>(null);
   const [payeeKey, setPayeeKey] = useState<string | null>(null);
   const [notesKey, setNotesKey] = useState<string | null>(null);
+  const [isInvertAmount, setIsInvertAmount] = useState(false);
+
+  async function handleFileChange(file: File | null) {
+    if (!file) return;
+    try {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const csv = event.target?.result as string;
+        const result = parseCSV(csv);
+        setData(result);
+        // Try to auto-detect columns
+        const headerMap = new Map([
+          [/(date|when|time)/i, setDateKey],
+          [/(amount|sum|price|total)/i, setAmountKey],
+          [/(payee|recipient|vendor|merchant|description)/i, setPayeeKey],
+          [/(notes|memo|details|comment)/i, setNotesKey],
+        ]);
+
+        result.headers.forEach((header) => {
+          for (const [pattern, setter] of headerMap) {
+            if (pattern.test(header)) {
+              setter(header);
+              break;
+            }
+          }
+        });
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error processing file:", error);
+      toast.error("Failed to process file. Please check the format.");
+    }
+  }
+
+  function validateMappings(): boolean {
+    if (!dateKey) {
+      toast.error("Please select a date column");
+      return false;
+    }
+    if (!amountKey) {
+      toast.error("Please select an amount column");
+      return false;
+    }
+    if (!payeeKey) {
+      toast.error("Please select a payee column");
+      return false;
+    }
+
+    return true;
+  }
 
   async function handleImport() {
-    if (!data) return;
-    if (!db) {
-      alert("Database connection is not available.");
-      return;
-    }
-    if (dateKey === null || amountKey === null) {
-      alert("Please select date and amount columns.");
-      return;
-    }
+    if (!data || !db) return;
+
+    if (!validateMappings()) return;
 
     try {
       await db.transaction(async (tx) => {
@@ -62,7 +110,10 @@ export default function ImportTransactionsPage({
 
         const transactions = data.rows.map((row) => {
           const date = new Date(row[dateKey!]);
-          const amount = Math.round(parseFloat(row[amountKey!]) * 100);
+          let amount = Math.round(
+            parseFloat(row[amountKey!].replace(/[^0-9.-]/g, "")) * 100
+          );
+          if (isInvertAmount) amount *= -1;
           const payee = payeeKey !== null ? row[payeeKey!] : "";
           const notes = notesKey !== null ? row[notesKey!] : "";
 
@@ -76,150 +127,205 @@ export default function ImportTransactionsPage({
           };
         });
 
-        await db.insert(transactionsTable).values(transactions);
+        await tx.insert(transactionsTable).values(transactions);
       });
+
+      toast.success(`Successfully imported ${data.rows.length} transactions`);
+      resetForm();
     } catch (error) {
       console.error("Error importing transactions:", error);
-      toast.error(
-        "Failed to import transactions. Please check the data format."
-      );
-      return;
+      toast.error("Failed to import transactions");
     }
+  }
 
+  function resetForm() {
     setData(null);
     setDateKey(null);
     setAmountKey(null);
     setPayeeKey(null);
     setNotesKey(null);
-    toast.success("Transactions imported successfully!");
+    setIsInvertAmount(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   }
 
   return (
     <ContentLayout
       header={
-        <Header description="Import transactions for this account.">
+        <Header description="Import transactions from a CSV file.">
           Import Transactions
         </Header>
       }
     >
-      <Label htmlFor="file" />
-      <Input
-        type="file"
-        id="file"
-        accept=".csv"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = async (event) => {
-            const csv = event.target?.result as string;
-            setData(await parseCSV(csv));
-          };
-          reader.readAsText(file);
-        }}
-      />
-      {data && (
-        <div>
-          <div className="flex flex-row gap-4">
-            <div>
-              <Label>Date</Label>
-              <Select defaultValue="none" onValueChange={setDateKey}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {data.headers.map((header, index) => (
-                    <SelectItem key={index} value={header}>
-                      {header}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Amount</Label>
-              <Select defaultValue="none" onValueChange={setAmountKey}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {data.headers.map((header, index) => (
-                    <SelectItem key={index} value={header}>
-                      {header}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Payee</Label>
-              <Select defaultValue="none" onValueChange={setPayeeKey}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {data.headers.map((header, index) => (
-                    <SelectItem key={index} value={header}>
-                      {header}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Notes</Label>
-              <Select defaultValue="none" onValueChange={setNotesKey}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {data.headers.map((header, index) => (
-                    <SelectItem key={index} value={header}>
-                      {header}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              onClick={handleImport}
-              className="mt-4"
-              disabled={
-                dateKey === null || amountKey === null || data.rows.length === 0
-              }
-            >
-              Import
-            </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload CSV File</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="file">Choose CSV File</Label>
+            <Input
+              ref={fileInputRef}
+              type="file"
+              id="file"
+              accept=".csv"
+              onChange={(e) => handleFileChange(e.target.files?.[0] ?? null)}
+            />
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {data.headers.map((header, index) => (
-                  <TableHead key={index}>{header}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.rows.map((row, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  {data.headers.map((header, index) => (
-                    <TableCell key={index}>{row[header] || "N/A"}</TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+          {data && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Date Column</Label>
+                  <Select
+                    value={dateKey ?? "none"}
+                    onValueChange={(value) =>
+                      setDateKey(value === "none" ? null : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Select column</SelectItem>
+                      {data.headers.map((header) => (
+                        <SelectItem key={header} value={header}>
+                          {header}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Amount Column</Label>
+                  <Select
+                    value={amountKey ?? "none"}
+                    onValueChange={(value) =>
+                      setAmountKey(value === "none" ? null : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Select column</SelectItem>
+                      {data.headers.map((header) => (
+                        <SelectItem key={header} value={header}>
+                          {header}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Payee Column</Label>
+                  <Select
+                    value={payeeKey ?? "none"}
+                    onValueChange={(value) =>
+                      setPayeeKey(value === "none" ? null : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Select column</SelectItem>
+                      {data.headers.map((header) => (
+                        <SelectItem key={header} value={header}>
+                          {header}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Notes Column</Label>
+                  <Select
+                    value={notesKey ?? "none"}
+                    onValueChange={(value) =>
+                      setNotesKey(value === "none" ? null : value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Select column</SelectItem>
+                      {data.headers.map((header) => (
+                        <SelectItem key={header} value={header}>
+                          {header}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  checked={isInvertAmount}
+                  onCheckedChange={(checked) =>
+                    checked !== "indeterminate" && setIsInvertAmount(checked)
+                  }
+                />
+                <Label>Invert amount values</Label>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount </TableHead>
+                        <TableHead>Payee</TableHead>
+                        <TableHead>Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.rows.slice(0, 3).map((row, rowIndex) => (
+                        <TableRow key={rowIndex}>
+                          <TableCell>{dateKey ? row[dateKey] : "-"}</TableCell>
+                          <TableCell>
+                            {amountKey
+                              ? currencyFormat(
+                                  isInvertAmount
+                                    ? -row[amountKey]
+                                    : row[amountKey]
+                                )
+                              : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {payeeKey ? row[payeeKey] : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {notesKey ? row[notesKey] : "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={resetForm}>
+                  Reset
+                </Button>
+                <Button onClick={handleImport}>Import</Button>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
     </ContentLayout>
   );
 }
