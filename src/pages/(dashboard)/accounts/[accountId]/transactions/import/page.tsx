@@ -1,5 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
@@ -22,11 +28,13 @@ import {
 } from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
 import { importsTable } from "@/lib/db/schema/import";
-import { transactionsTable } from "@/lib/db/schema/transaction";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transaction";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
 import { currencyFormat } from "@/lib/utils";
-import { useRef, useState } from "react";
+import currency from "currency.js";
+import { eq } from "drizzle-orm";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface ImportTransactionsPageProps {
@@ -45,7 +53,67 @@ export default function ImportTransactionsPage({
   const [amountKey, setAmountKey] = useState<string | null>(null);
   const [payeeKey, setPayeeKey] = useState<string | null>(null);
   const [notesKey, setNotesKey] = useState<string | null>(null);
-  const [isInvertAmount, setIsInvertAmount] = useState(false);
+  const [isInvertAmount, setIsInvertAmount] = useState<boolean>(false);
+  const [existingTransactions, setExistingTransactions] = useState<
+    Pick<Transaction, "date" | "amount" | "payee" | "notes">[]
+  >([]);
+  const [transactionsPreview, setTransactionsPreview] = useState<
+    (Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+      duplicate: boolean;
+    })[]
+  >([]);
+
+  useEffect(() => {
+    async function fetchExistingTransactions() {
+      if (!db) return;
+      const transactions = await db
+        .select({
+          date: transactionsTable.date,
+          amount: transactionsTable.amount,
+          payee: transactionsTable.payee,
+          notes: transactionsTable.notes,
+        })
+        .from(transactionsTable)
+        .where(eq(transactionsTable.accountId, params.accountId));
+      setExistingTransactions(transactions);
+    }
+    fetchExistingTransactions();
+  }, [db, params.accountId]);
+
+  useEffect(() => {
+    if (!data) return;
+    if (!dateKey || !amountKey || !payeeKey) return;
+    const preview = data.rows.map((row) => {
+      const date = new Date(row[dateKey]);
+      const amount = (
+        isInvertAmount
+          ? currency(row[amountKey]).multiply(-1)
+          : currency(row[amountKey])
+      ).intValue;
+      const payee = row[payeeKey].trim();
+      const notes = notesKey !== null ? row[notesKey].trim() : null;
+
+      const duplicate = existingTransactions.some((existing) => {
+        return (
+          existing.date.getTime() === date.getTime() &&
+          existing.amount === amount &&
+          existing.payee === payee &&
+          existing.notes === notes
+        );
+      });
+
+      return { date, amount, payee, notes, duplicate };
+    });
+    setTransactionsPreview(preview);
+  }, [
+    data,
+    dateKey,
+    amountKey,
+    payeeKey,
+    notesKey,
+    isInvertAmount,
+    existingTransactions,
+  ]);
 
   async function handleFileChange(file: File | null) {
     if (!file) return;
@@ -108,26 +176,19 @@ export default function ImportTransactionsPage({
           .values({})
           .returning({ id: importsTable.id });
 
-        const transactions = data.rows.map((row) => {
-          const date = new Date(row[dateKey!]);
-          let amount = Math.round(
-            parseFloat(row[amountKey!].replace(/[^0-9.-]/g, "")) * 100
-          );
-          if (isInvertAmount) amount *= -1;
-          const payee = payeeKey !== null ? row[payeeKey!] : "";
-          const notes = notesKey !== null ? row[notesKey!] : "";
+        const transactions = transactionsPreview
+          .filter((row) => !row.duplicate)
+          .map((row) => {
+            return {
+              accountId: params.accountId,
+              importId: importRecord.id,
+              ...row,
+            };
+          });
 
-          return {
-            accountId: params.accountId,
-            importId: importRecord.id,
-            date,
-            amount,
-            payee,
-            notes,
-          };
-        });
-
-        await tx.insert(transactionsTable).values(transactions);
+        if (transactions.length > 0) {
+          await tx.insert(transactionsTable).values(transactions);
+        }
       });
 
       toast.success(`Successfully imported ${data.rows.length} transactions`);
@@ -279,11 +340,20 @@ export default function ImportTransactionsPage({
               <Card>
                 <CardHeader>
                   <CardTitle>Preview</CardTitle>
+                  <CardDescription>
+                    {data.rows.length} transactions found
+                    <br />
+                    {
+                      transactionsPreview.filter((row) => row.duplicate).length
+                    }{" "}
+                    duplicate transactions found
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="max-h-96 overflow-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>Duplicate</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Amount </TableHead>
                         <TableHead>Payee</TableHead>
@@ -291,24 +361,32 @@ export default function ImportTransactionsPage({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data.rows.slice(0, 3).map((row, rowIndex) => (
-                        <TableRow key={rowIndex}>
-                          <TableCell>{dateKey ? row[dateKey] : "-"}</TableCell>
+                      {transactionsPreview.map((row, rowIndex) => (
+                        <TableRow
+                          key={rowIndex}
+                          className={row.duplicate ? "bg-accent" : ""}
+                        >
                           <TableCell>
-                            {amountKey
-                              ? currencyFormat(
-                                  isInvertAmount
-                                    ? -row[amountKey]
-                                    : row[amountKey]
+                            <Checkbox
+                              checked={row.duplicate}
+                              onCheckedChange={() =>
+                                setTransactionsPreview((prev) =>
+                                  prev.map((r, i) =>
+                                    i === rowIndex
+                                      ? { ...r, duplicate: !r.duplicate }
+                                      : r
+                                  )
                                 )
-                              : "-"}
+                              }
+                              className="cursor-pointer"
+                            />
                           </TableCell>
+                          <TableCell>{row.date.toLocaleDateString()}</TableCell>
                           <TableCell>
-                            {payeeKey ? row[payeeKey] : "-"}
+                            {currencyFormat(row.amount / 100)}
                           </TableCell>
-                          <TableCell>
-                            {notesKey ? row[notesKey] : "-"}
-                          </TableCell>
+                          <TableCell>{row.payee}</TableCell>
+                          <TableCell>{row.notes}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
