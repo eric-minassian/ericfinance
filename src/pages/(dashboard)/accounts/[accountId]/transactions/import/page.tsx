@@ -58,7 +58,7 @@ export default function ImportTransactionsPage({
     Pick<Transaction, "date" | "amount" | "payee" | "notes">[]
   >([]);
   const [transactionsPreview, setTransactionsPreview] = useState<
-    (Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+    (Pick<Transaction, "date" | "amount" | "payee" | "notes" | "rawData"> & {
       duplicate: boolean;
     })[]
   >([]);
@@ -102,7 +102,7 @@ export default function ImportTransactionsPage({
         );
       });
 
-      return { date, amount, payee, notes, duplicate };
+      return { date, amount, payee, notes, duplicate, rawData: row };
     });
     setTransactionsPreview(preview);
   }, [
@@ -170,7 +170,7 @@ export default function ImportTransactionsPage({
     if (!validateMappings()) return;
 
     try {
-      await db.transaction(async (tx) => {
+      const transactionsLength = await db.transaction(async (tx) => {
         const [importRecord] = await tx
           .insert(importsTable)
           .values({})
@@ -189,9 +189,11 @@ export default function ImportTransactionsPage({
         if (transactions.length > 0) {
           await tx.insert(transactionsTable).values(transactions);
         }
+
+        return transactions.length;
       });
 
-      toast.success(`Successfully imported ${data.rows.length} transactions`);
+      toast.success(`Successfully imported ${transactionsLength} transactions`);
       resetForm();
     } catch (error) {
       console.error("Error importing transactions:", error);
