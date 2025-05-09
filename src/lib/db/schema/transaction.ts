@@ -21,6 +21,7 @@ export const transactionsTable = sqliteTable("transactions", {
   date: int("date", { mode: "timestamp" }).notNull(),
   payee: text("payee").notNull(),
   notes: text("notes"),
+  rawData: text("raw_data", { mode: "json" }),
 });
 
 export const transactionSchema = z.object({
@@ -31,6 +32,7 @@ export const transactionSchema = z.object({
   date: z.date(),
   payee: z.string(),
   notes: z.string().optional(),
+  rawData: z.string().optional(),
 });
 export const transactionFormSchema = z.object({
   id: z.string().cuid2(),
@@ -63,5 +65,6 @@ export const transactionFormSchema = z.object({
     .transform((val) => new Date(val)),
   payee: z.string().min(1, { message: "Payee is required" }),
   notes: z.string().transform((val) => (val === "" ? undefined : val)),
+  rawData: z.string().optional(),
 });
 export type Transaction = InferSelectModel<typeof transactionsTable>;
