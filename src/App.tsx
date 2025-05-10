@@ -1,5 +1,7 @@
 import { Route, Switch } from "wouter";
 import AccountPage from "./pages/(dashboard)/accounts/[accountId]/page";
+import ImportSecuritiesPage from "./pages/(dashboard)/accounts/[accountId]/securities/import/page";
+import AccountSecuritiesPage from "./pages/(dashboard)/accounts/[accountId]/securities/page";
 import CreateTransactionPage from "./pages/(dashboard)/accounts/[accountId]/transactions/create/page";
 import ImportTransactionsPage from "./pages/(dashboard)/accounts/[accountId]/transactions/import/page";
 import AccountTransactionsPage from "./pages/(dashboard)/accounts/[accountId]/transactions/page";
@@ -73,6 +75,22 @@ export default function App() {
         {(params) => (
           <DashboardLayout>
             <ImportTransactionsPage params={params} />
+          </DashboardLayout>
+        )}
+      </Route>
+
+      <Route path="/accounts/:accountId/securities">
+        {(params) => (
+          <DashboardLayout>
+            <AccountSecuritiesPage params={params} />
+          </DashboardLayout>
+        )}
+      </Route>
+
+      <Route path="/accounts/:accountId/securities/import">
+        {(params) => (
+          <DashboardLayout>
+            <ImportSecuritiesPage params={params} />
           </DashboardLayout>
         )}
       </Route>
