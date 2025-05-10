@@ -73,7 +73,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (file && sql) {
       const reader = new FileReader();
-      reader.onload = function () {
+      reader.onload = async function () {
         if (!reader.result) {
           return;
         }
@@ -82,6 +82,9 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         try {
           const sqlDb = new sql.Database(uint8Array);
           const db = drizzle(sqlDb, { schema: schema });
+
+          await migrate(db, { journal, migrations });
+
           setDB(db);
           setSqlDb(sqlDb);
           console.log("Database initialized successfully");
