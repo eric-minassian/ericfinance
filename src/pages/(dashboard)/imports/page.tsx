@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import { Import, importsTable } from "@/lib/db/schema/import";
+import { Import, importsTable } from "@/lib/db/schema/imports";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";
 import { MoreHorizontal } from "lucide-react";

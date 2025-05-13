@@ -33,6 +33,10 @@ const data = {
       title: "Imports",
       url: "/imports",
     },
+    {
+      title: "Settings",
+      url: "/settings",
+    },
   ],
 };
 

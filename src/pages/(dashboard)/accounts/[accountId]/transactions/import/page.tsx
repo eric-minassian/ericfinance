@@ -27,8 +27,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
-import { importsTable } from "@/lib/db/schema/import";
-import { Transaction, transactionsTable } from "@/lib/db/schema/transaction";
+import { importsTable } from "@/lib/db/schema/imports";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
 import { currencyFormat } from "@/lib/utils";

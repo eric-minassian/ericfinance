@@ -1,7 +1,7 @@
-import { accountsTable } from "./account";
-import { importsTable } from "./import";
-import { securitiesTable } from "./security";
-import { transactionsTable } from "./transaction";
+import { accountsTable } from "./accounts";
+import { importsTable } from "./imports";
+import { securitiesTable } from "./securities";
+import { transactionsTable } from "./transactions";
 
 export const schema = {
   account: accountsTable,

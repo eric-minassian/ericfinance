@@ -7,7 +7,7 @@ import {
   Transaction,
   transactionFormSchema,
   transactionsTable,
-} from "@/lib/db/schema/transaction";
+} from "@/lib/db/schema/transactions";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 

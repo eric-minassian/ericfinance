@@ -7,7 +7,7 @@ import {
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import { transactionsTable } from "@/lib/db/schema/transaction";
+import { transactionsTable } from "@/lib/db/schema/transactions";
 import currency from "currency.js";
 import { sum } from "drizzle-orm";
 import { useEffect, useState } from "react";

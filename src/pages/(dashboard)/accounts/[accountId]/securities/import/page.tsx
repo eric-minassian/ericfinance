@@ -27,8 +27,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
-import { importsTable } from "@/lib/db/schema/import";
-import { securitiesTable, Security } from "@/lib/db/schema/security";
+import { importsTable } from "@/lib/db/schema/imports";
+import { securitiesTable, Security } from "@/lib/db/schema/securities";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
 import { eq } from "drizzle-orm";

@@ -3,8 +3,8 @@ import { DataTableColumnHeader } from "@/components/data-table/data-table-column
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import { Account, accountsTable } from "@/lib/db/schema/account";
-import { Transaction, transactionsTable } from "@/lib/db/schema/transaction";
+import { Account, accountsTable } from "@/lib/db/schema/accounts";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { integerCurrencyFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";

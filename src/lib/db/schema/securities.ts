@@ -2,8 +2,8 @@ import { createId } from "@paralleldrive/cuid2";
 import { type InferSelectModel } from "drizzle-orm";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
-import { accountsTable } from "./account";
-import { importsTable } from "./import";
+import { accountsTable } from "./accounts";
+import { importsTable } from "./imports";
 
 export const securitiesTable = sqliteTable("securities", {
   id: text("id")
