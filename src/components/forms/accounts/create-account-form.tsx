@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useDB } from "@/hooks/db";
 import { useAppForm } from "@/hooks/form";
-import { accountSchema, accountsTable } from "@/lib/db/schema/account";
+import { accountSchema, accountsTable } from "@/lib/db/schema/accounts";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 

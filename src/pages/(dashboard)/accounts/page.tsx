@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import { Account, accountsTable } from "@/lib/db/schema/account";
-import { transactionsTable } from "@/lib/db/schema/transaction";
+import { Account, accountsTable } from "@/lib/db/schema/accounts";
+import { transactionsTable } from "@/lib/db/schema/transactions";
 import { integerCurrencyFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq, sum } from "drizzle-orm";

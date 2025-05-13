@@ -10,6 +10,7 @@ import AccountsPage from "./pages/(dashboard)/accounts/page";
 import DashboardPage from "./pages/(dashboard)/dashboard/page";
 import ImportsPage from "./pages/(dashboard)/imports/page";
 import DashboardLayout from "./pages/(dashboard)/layout";
+import SettingsPage from "./pages/(dashboard)/settings/page";
 import TransactionsPage from "./pages/(dashboard)/transactions/page";
 import SiteLayout from "./pages/(site)/layout";
 import IndexPage from "./pages/(site)/page";
@@ -98,6 +99,12 @@ export default function App() {
       <Route path="/imports">
         <DashboardLayout>
           <ImportsPage />
+        </DashboardLayout>
+      </Route>
+
+      <Route path="/settings">
+        <DashboardLayout>
+          <SettingsPage />
         </DashboardLayout>
       </Route>
 

@@ -11,7 +11,7 @@ import {
 import { Header } from "@/components/ui/header";
 import { SpaceBetween } from "@/components/ui/space-between";
 import { useDB } from "@/hooks/db";
-import { Transaction, transactionsTable } from "@/lib/db/schema/transaction";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";
 import { MoreHorizontal } from "lucide-react";
