@@ -1,5 +1,6 @@
 import { Route, Switch } from "wouter";
 import AccountPage from "./pages/(dashboard)/accounts/[accountId]/page";
+import CreateSecurityPage from "./pages/(dashboard)/accounts/[accountId]/securities/create/page";
 import ImportSecuritiesPage from "./pages/(dashboard)/accounts/[accountId]/securities/import/page";
 import AccountSecuritiesPage from "./pages/(dashboard)/accounts/[accountId]/securities/page";
 import CreateTransactionPage from "./pages/(dashboard)/accounts/[accountId]/transactions/create/page";
@@ -106,6 +107,14 @@ export default function App() {
         <DashboardLayout>
           <SettingsPage />
         </DashboardLayout>
+      </Route>
+
+      <Route path="/accounts/:accountId/securities/create">
+        {(params) => (
+          <DashboardLayout>
+            <CreateSecurityPage params={params} />
+          </DashboardLayout>
+        )}
       </Route>
 
       <Route>
