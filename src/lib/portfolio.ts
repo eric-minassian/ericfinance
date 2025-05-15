@@ -1,11 +1,118 @@
 import alphavantage from "alphavantage";
 import currency from "currency.js";
-import { and, asc, eq, gte, lte, or } from "drizzle-orm";
-import { Account } from "./db/schema/accounts";
+import { and, asc, eq, gte, lte, or, sum } from "drizzle-orm";
+import { getPreviousDate } from "./date";
+import { Account, accountsTable } from "./db/schema/accounts";
 import { securitiesTable, Security } from "./db/schema/securities";
 import { securityPricesTable } from "./db/schema/security-prices";
 import { settingsTable } from "./db/schema/settings";
+import { transactionsTable } from "./db/schema/transactions";
 import { Database } from "./types";
+
+export type GetAccountsValueResponse = Array<Account & { balance: number }>;
+
+export async function getAccountsValue(
+  db: Database
+): Promise<GetAccountsValueResponse> {
+  const accounts = await getAccountsTransactionsValue(db);
+  const accountsWithSecurities = await Promise.all(
+    accounts.map(async (account) => {
+      const securitiesValue = await getAccountSecuritiesValue(db, account.id);
+      return {
+        ...account,
+        balance: account.balance + securitiesValue,
+      };
+    })
+  );
+
+  return accountsWithSecurities;
+}
+
+export async function getAccountValue(
+  db: Database,
+  accountId: Account["id"]
+): Promise<number> {
+  return db
+    .select({
+      balance: sum(transactionsTable.amount),
+    })
+    .from(transactionsTable)
+    .where(eq(transactionsTable.accountId, accountId))
+    .then((result) => {
+      return result[0]?.balance ? parseFloat(result[0].balance) : 0;
+    });
+}
+
+export async function getAccountsTransactionsValue(
+  db: Database
+): Promise<Array<Pick<Account, "id" | "name"> & { balance: number }>> {
+  const transactions = await db
+    .select({
+      id: accountsTable.id,
+      name: accountsTable.name,
+      balance: sum(transactionsTable.amount),
+    })
+    .from(accountsTable)
+    .leftJoin(
+      transactionsTable,
+      eq(transactionsTable.accountId, accountsTable.id)
+    )
+    .groupBy(accountsTable.id)
+    .orderBy(accountsTable.name);
+
+  return transactions.map((account) => ({
+    ...account,
+    balance: account.balance ? parseFloat(account.balance) : 0,
+  }));
+}
+
+export async function getAccountSecuritiesValue(
+  db: Database,
+  accountId: Account["id"]
+): Promise<number> {
+  const securities = await db
+    .select({
+      ticker: securitiesTable.ticker,
+      numShares: sum(securitiesTable.amount),
+    })
+    .from(securitiesTable)
+    .where(eq(securitiesTable.accountId, accountId))
+    .groupBy(securitiesTable.ticker);
+
+  const securitiesWithPrices = await Promise.all(
+    securities.map(async (security) => {
+      const prices = await db
+        .select({
+          price: securityPricesTable.price,
+        })
+        .from(securityPricesTable)
+        .where(
+          and(
+            eq(securityPricesTable.ticker, security.ticker),
+            gte(securityPricesTable.date, getPreviousDate(5))
+          )
+        )
+        .orderBy(asc(securityPricesTable.date));
+
+      const price = prices.pop()?.price;
+      return {
+        ...security,
+        price: price ? price : 0,
+      };
+    })
+  );
+
+  const totalValue = securitiesWithPrices.reduce((acc, security) => {
+    return (
+      acc +
+      (security.price
+        ? security.price * (parseFloat(security.numShares ?? "0") ?? 0)
+        : 0)
+    );
+  }, 0);
+
+  return totalValue;
+}
 
 export async function getSecuritiesPortfolioValue(
   db: Database,
