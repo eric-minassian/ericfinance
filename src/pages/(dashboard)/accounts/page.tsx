@@ -11,58 +11,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
+import { useQuery } from "@/hooks/use-query";
 import { Account, accountsTable } from "@/lib/db/schema/accounts";
-import { transactionsTable } from "@/lib/db/schema/transactions";
+import { getAccountsValue, GetAccountsValueResponse } from "@/lib/portfolio";
 import { integerCurrencyFormat } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { eq, sum } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { MoreHorizontal } from "lucide-react";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 
-type AccountWithBalance = Account & {
-  balance: string | null;
-};
-
 export default function AccountsPage() {
   const { db } = useDB();
-
-  const [accounts, setAccounts] = useState<AccountWithBalance[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchAccounts = async () => {
-      try {
-        const data = await db!
-          .select({
-            id: accountsTable.id,
-            name: accountsTable.name,
-            balance: sum(transactionsTable.amount),
-          })
-          .from(accountsTable)
-          .leftJoin(
-            transactionsTable,
-            eq(transactionsTable.accountId, accountsTable.id)
-          )
-          .groupBy(accountsTable.id)
-          .orderBy(accountsTable.name);
-
-        setAccounts(data);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to fetch accounts");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAccounts();
-  }, [db]);
+  const { data, setData, isError, isPending } = useQuery(
+    async () => getAccountsValue(db!),
+    [db]
+  );
 
   async function handleDeleteAccount(id: Account["id"]) {
     try {
       await db!.delete(accountsTable).where(eq(accountsTable.id, id));
-      setAccounts((prev) => prev.filter((account) => account.id !== id));
+      setData((prev) => {
+        if (!prev) return [];
+
+        return prev.filter((account) => account.id !== id);
+      });
       toast.success("Account deleted successfully");
     } catch (error) {
       console.error(error);
@@ -70,7 +43,7 @@ export default function AccountsPage() {
     }
   }
 
-  const columns: ColumnDef<AccountWithBalance>[] = [
+  const columns: ColumnDef<GetAccountsValueResponse[number]>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -157,8 +130,12 @@ export default function AccountsPage() {
     },
   ];
 
-  if (loading) {
-    return <div className="p-4 text-center">Loading...</div>;
+  if (isError) {
+    return <div>Error loading accounts</div>;
+  }
+
+  if (isPending) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -176,7 +153,7 @@ export default function AccountsPage() {
         </Header>
       }
     >
-      <DataTable data={accounts} columns={columns} searchColumn="name" />
+      <DataTable data={data} columns={columns} searchColumn="name" />
     </ContentLayout>
   );
 }
