@@ -1,6 +1,8 @@
-export function getPreviousDate(days: number = 1): Date {
-  const today = new Date();
-  const previousDate = new Date(today);
-  previousDate.setDate(today.getDate() - days);
-  return previousDate;
+export function getOnlyDateString(date: Date): string {
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  };
+  return new Intl.DateTimeFormat("en-US", options).format(date);
 }

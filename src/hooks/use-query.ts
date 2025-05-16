@@ -50,6 +50,7 @@ export function useQuery<T>(
         }
       } catch (err) {
         if (isMounted) {
+          console.error("Error fetching data:", err);
           setError(err);
         }
       } finally {

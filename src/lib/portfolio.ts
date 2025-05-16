@@ -1,13 +1,51 @@
 import alphavantage from "alphavantage";
 import currency from "currency.js";
-import { and, asc, eq, gte, lte, or, sum } from "drizzle-orm";
-import { getPreviousDate } from "./date";
+import { and, asc, desc, eq, gte, lte, notInArray, or, sum } from "drizzle-orm";
 import { Account, accountsTable } from "./db/schema/accounts";
 import { securitiesTable, Security } from "./db/schema/securities";
 import { securityPricesTable } from "./db/schema/security-prices";
 import { settingsTable } from "./db/schema/settings";
 import { transactionsTable } from "./db/schema/transactions";
 import { Database } from "./types";
+
+export async function listPortfolioValues(
+  db: Database,
+  accountIdFilter: Array<Account["id"]>
+) {
+  return await listPortfolioTransactionsValue(db, accountIdFilter);
+}
+
+async function listPortfolioSecuritiesValue(
+  db: Database,
+  accountIdFilter: Array<Account["id"]>
+) {}
+
+async function listPortfolioTransactionsValue(
+  db: Database,
+  accountIdFilter: Array<Account["id"]>
+) {
+  const accounts = await db
+    .select({
+      date: transactionsTable.date,
+      amount: sum(transactionsTable.amount),
+    })
+    .from(transactionsTable)
+    .where(notInArray(transactionsTable.accountId, accountIdFilter))
+    .groupBy(transactionsTable.date)
+    .orderBy(transactionsTable.date);
+
+  const totalSums = [];
+  let currentTotal = 0;
+
+  for (const account of accounts) {
+    currentTotal += account.amount !== null ? Number(account.amount) : 0;
+    totalSums.push({
+      date: account.date.toString(),
+      amount: currentTotal,
+    });
+  }
+  return totalSums;
+}
 
 export type GetAccountsValueResponse = Array<Account & { balance: number }>;
 
@@ -86,13 +124,9 @@ export async function getAccountSecuritiesValue(
           price: securityPricesTable.price,
         })
         .from(securityPricesTable)
-        .where(
-          and(
-            eq(securityPricesTable.ticker, security.ticker),
-            gte(securityPricesTable.date, getPreviousDate(5))
-          )
-        )
-        .orderBy(asc(securityPricesTable.date));
+        .where(eq(securityPricesTable.ticker, security.ticker))
+        .orderBy(desc(securityPricesTable.date))
+        .limit(1);
 
       const price = prices.pop()?.price;
       return {
