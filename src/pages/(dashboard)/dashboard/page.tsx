@@ -1,24 +1,10 @@
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+import { ChartConfig } from "@/components/ui/chart";
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
-import { transactionsTable } from "@/lib/db/schema/transactions";
-import currency from "currency.js";
-import { sum } from "drizzle-orm";
+import { listPortfolioValues } from "@/lib/portfolio";
 import { useEffect, useState } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ReferenceLine,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { HistoricalPortfolioValueGraph } from "./_components/historical-portfolio-value-graph";
 
 const chartConfig = {
   amount: {
@@ -35,27 +21,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const accounts = await db!
-        .select({
-          date: transactionsTable.date,
-          amount: sum(transactionsTable.amount),
-        })
-        .from(transactionsTable)
-        .groupBy(transactionsTable.date)
-        .orderBy(transactionsTable.date);
-
-      const totalSums = [];
-      let currentTotal = 0;
-
-      for (const account of accounts) {
-        currentTotal += account.amount !== null ? Number(account.amount) : 0;
-        totalSums.push({
-          date: account.date.toString(),
-          amount: currentTotal,
-        });
-      }
-
-      setContinuousAccountsSum(totalSums);
+      setContinuousAccountsSum(await listPortfolioValues(db!, []));
     }
 
     fetchData();
@@ -79,7 +45,7 @@ export default function DashboardPage() {
 
   return (
     <ContentLayout header={<Header>Dashboard</Header>}>
-      <ChartContainer
+      {/* <ChartContainer
         config={chartConfig}
         className="aspect-auto h-[250px] w-full"
       >
@@ -143,7 +109,8 @@ export default function DashboardPage() {
           <Area type="monotone" dataKey="amount" fill="url(#splitColor)" />
           <ReferenceLine y={0} stroke="#000" strokeDasharray="3 3" />
         </AreaChart>
-      </ChartContainer>
+      </ChartContainer> */}
+      <HistoricalPortfolioValueGraph />
     </ContentLayout>
   );
 }
