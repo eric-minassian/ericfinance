@@ -31,7 +31,7 @@ import { importsTable } from "@/lib/db/schema/imports";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
-import { currencyFormat } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import currency from "currency.js";
 import { eq } from "drizzle-orm";
 import { useEffect, useRef, useState } from "react";
@@ -385,7 +385,7 @@ export default function ImportTransactionsPage({
                           </TableCell>
                           <TableCell>{row.date.toLocaleDateString()}</TableCell>
                           <TableCell>
-                            {currencyFormat(row.amount / 100)}
+                            {formatCurrency(row.amount / 100)}
                           </TableCell>
                           <TableCell>{row.payee}</TableCell>
                           <TableCell>{row.notes}</TableCell>

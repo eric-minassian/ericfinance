@@ -14,9 +14,8 @@ import {
 import { useDB } from "@/hooks/db";
 import { useQuery } from "@/hooks/use-query";
 import { getHistoricalNetWorth } from "@/lib/services/accounts/get-net-worth";
-import currency from "currency.js";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { ValueType } from "recharts/types/component/DefaultTooltipContent";
 
 const chartConfig = {
   netWorthInCents: {
@@ -31,20 +30,6 @@ export function NetWorthChart() {
     async () => getHistoricalNetWorth({ db: db! }),
     [db]
   );
-
-  function formatDate(date: string) {
-    const d = new Date(date);
-    return d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
-    });
-  }
-  function formatCurrency(value: ValueType) {
-    return currency(value.toString(), {
-      symbol: "$",
-      fromCents: true,
-    }).format();
-  }
 
   return (
     <Card>
@@ -62,7 +47,7 @@ export function NetWorthChart() {
           <AreaChart
             accessibilityLayer
             data={data}
-            margin={{ left: 12, top: 24 }}
+            margin={{ top: 24, left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />
             <XAxis

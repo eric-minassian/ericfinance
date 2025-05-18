@@ -5,7 +5,7 @@ import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
 import { Account, accountsTable } from "@/lib/db/schema/accounts";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
-import { integerCurrencyFormat } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";
 import { useEffect, useState } from "react";
@@ -57,7 +57,7 @@ export default function TransactionsPage() {
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Amount" />
       ),
-      cell: ({ row }) => integerCurrencyFormat(row.getValue("amount")),
+      cell: ({ row }) => formatCurrency(row.getValue("amount")),
     },
     {
       accessorKey: "date",
