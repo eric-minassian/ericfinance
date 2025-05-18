@@ -19,14 +19,14 @@ import {
 export function HistoricalPortfolioValueGraph() {
   const { db } = useDB();
 
-  const { data, isError, isPending } = useQuery(async () =>
+  const { data, error, isPending } = useQuery(async () =>
     (await historicalPortfolioValue({ db: db! })).map((item) => ({
       date: item.date.toString(),
       valueInCents: item.valueInCents,
     }))
   );
 
-  if (isError) {
+  if (error) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <p className="text-sm text-red-500">Error loading data</p>
@@ -42,7 +42,7 @@ export function HistoricalPortfolioValueGraph() {
     );
   }
 
-  if (data.length === 0) {
+  if (data!.length === 0) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <p className="text-sm text-gray-500">No data available</p>
