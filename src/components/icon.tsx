@@ -6,6 +6,7 @@ import {
   Home,
   Import,
   Landmark,
+  Plus,
   RefreshCw,
   Settings,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const iconMap = {
   import: Import,
   settings: Settings,
   customize: Columns3Cog,
+  plus: Plus,
 };
 
 interface IconProps {
