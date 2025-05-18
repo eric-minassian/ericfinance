@@ -20,6 +20,7 @@ import { eq } from "drizzle-orm";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { CreateAccountButton } from "./_components/create-account-button";
 
 export default function AccountsPage() {
   const { db } = useDB();
@@ -140,18 +141,7 @@ export default function AccountsPage() {
 
   return (
     <ContentLayout
-      header={
-        <Header
-          description="Manage your accounts here."
-          actions={
-            <Button asChild>
-              <Link href="/accounts/create">Create Account</Link>
-            </Button>
-          }
-        >
-          Accounts
-        </Header>
-      }
+      header={<Header actions={<CreateAccountButton />}>Accounts</Header>}
     >
       <DataTable data={data} columns={columns} searchColumn="name" />
     </ContentLayout>
