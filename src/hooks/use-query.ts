@@ -3,19 +3,16 @@ import React from "react";
 export type UseQueryResult<T> =
   | {
       isPending: true;
-      isError: false;
       data: undefined;
       error: null;
     }
   | {
       isPending: false;
-      isError: true;
       data: undefined;
       error: unknown;
     }
   | {
       isPending: false;
-      isError: false;
       data: T;
       error: null;
     };
@@ -71,7 +68,6 @@ export function useQuery<T>(
   if (isPending) {
     return {
       isPending: true,
-      isError: false,
       data: undefined,
       error: null,
       setData: setCurrentData,
@@ -81,7 +77,6 @@ export function useQuery<T>(
   if (error) {
     return {
       isPending: false,
-      isError: true,
       data: undefined,
       error: error,
       setData: setCurrentData,
@@ -90,7 +85,6 @@ export function useQuery<T>(
 
   return {
     isPending: false,
-    isError: false,
     data: currentData as T,
     error: null,
     setData: setCurrentData,

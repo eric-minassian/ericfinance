@@ -21,10 +21,11 @@ import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { CreateAccountButton } from "./_components/create-account-button";
+import { NetWorthChart } from "./_components/net-worth-chart";
 
 export default function AccountsPage() {
   const { db } = useDB();
-  const { data, setData, isError, isPending } = useQuery(
+  const { data, error, setData, isPending } = useQuery(
     async () => getAccountsValue(db!),
     [db]
   );
@@ -131,7 +132,7 @@ export default function AccountsPage() {
     },
   ];
 
-  if (isError) {
+  if (error) {
     return <div>Error loading accounts</div>;
   }
 
@@ -143,7 +144,8 @@ export default function AccountsPage() {
     <ContentLayout
       header={<Header actions={<CreateAccountButton />}>Accounts</Header>}
     >
-      <DataTable data={data} columns={columns} searchColumn="name" />
+      <NetWorthChart />
+      <DataTable data={data!} columns={columns} searchColumn="name" />
     </ContentLayout>
   );
 }
