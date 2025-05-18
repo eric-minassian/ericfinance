@@ -44,7 +44,7 @@ export default function DashboardPage() {
   const off = gradientOffset();
 
   return (
-    <ContentLayout header={<Header>Dashboard</Header>}>
+    <ContentLayout header={<Header>Welcome back!</Header>}>
       {/* <ChartContainer
         config={chartConfig}
         className="aspect-auto h-[250px] w-full"
