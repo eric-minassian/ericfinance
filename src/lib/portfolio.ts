@@ -1,51 +1,12 @@
 import alphavantage from "alphavantage";
 import currency from "currency.js";
-import { and, asc, desc, eq, gte, lte, notInArray, or, sum } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, or, sum } from "drizzle-orm";
 import { Account, accountsTable } from "./db/schema/accounts";
 import { securitiesTable, Security } from "./db/schema/securities";
 import { securityPricesTable } from "./db/schema/security-prices";
 import { settingsTable } from "./db/schema/settings";
 import { transactionsTable } from "./db/schema/transactions";
 import { Database } from "./types";
-
-export async function listPortfolioValues(
-  db: Database,
-  accountIdFilter: Array<Account["id"]>
-) {
-  return await listPortfolioTransactionsValue(db, accountIdFilter);
-}
-
-async function listPortfolioSecuritiesValue(
-  db: Database,
-  accountIdFilter: Array<Account["id"]>
-) {}
-
-async function listPortfolioTransactionsValue(
-  db: Database,
-  accountIdFilter: Array<Account["id"]>
-) {
-  const accounts = await db
-    .select({
-      date: transactionsTable.date,
-      amount: sum(transactionsTable.amount),
-    })
-    .from(transactionsTable)
-    .where(notInArray(transactionsTable.accountId, accountIdFilter))
-    .groupBy(transactionsTable.date)
-    .orderBy(transactionsTable.date);
-
-  const totalSums = [];
-  let currentTotal = 0;
-
-  for (const account of accounts) {
-    currentTotal += account.amount !== null ? Number(account.amount) : 0;
-    totalSums.push({
-      date: account.date.toString(),
-      amount: currentTotal,
-    });
-  }
-  return totalSums;
-}
 
 export type GetAccountsValueResponse = Array<Account & { balance: number }>;
 
@@ -254,6 +215,9 @@ async function getOrderedSecurityPrices(
   startDate: Date,
   endDate: Date
 ): Promise<{ date: Date; price: number }[]> {
+  const startDateString = startDate.toISOString().split("T")[0];
+  const endDateString = endDate.toISOString().split("T")[0];
+
   const prices = await db
     .select({
       date: securityPricesTable.date,
@@ -263,14 +227,14 @@ async function getOrderedSecurityPrices(
     .where(
       and(
         eq(securityPricesTable.ticker, ticker),
-        gte(securityPricesTable.date, startDate),
-        lte(securityPricesTable.date, endDate)
+        gte(securityPricesTable.date, startDateString),
+        lte(securityPricesTable.date, endDateString)
       )
     )
     .orderBy(asc(securityPricesTable.date));
 
   return prices.map((price) => ({
-    ...price,
+    date: new Date(price.date),
     price: currency(price.price, { fromCents: true }).value,
   }));
 }
@@ -298,7 +262,7 @@ async function refreshSecurityPrices(db: Database, ticker: string) {
   };
   const priceEntries = Object.entries(prices["Time Series (Daily)"]).map(
     ([date, data]) => ({
-      date: new Date(date),
+      date: new Date(date).toISOString().split("T")[0],
       price: currency(data["4. close"]).intValue,
       ticker,
     })
