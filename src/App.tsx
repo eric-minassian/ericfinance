@@ -1,122 +1,104 @@
+import { ComponentType, ReactNode } from "react";
 import { Route, Switch } from "wouter";
-import AccountPage from "./pages/(dashboard)/accounts/[accountId]/page";
-import CreateSecurityPage from "./pages/(dashboard)/accounts/[accountId]/securities/create/page";
-import ImportSecuritiesPage from "./pages/(dashboard)/accounts/[accountId]/securities/import/page";
-import AccountSecuritiesPage from "./pages/(dashboard)/accounts/[accountId]/securities/page";
-import CreateTransactionPage from "./pages/(dashboard)/accounts/[accountId]/transactions/create/page";
-import ImportTransactionsPage from "./pages/(dashboard)/accounts/[accountId]/transactions/import/page";
-import AccountTransactionsPage from "./pages/(dashboard)/accounts/[accountId]/transactions/page";
-import CreateAccountPage from "./pages/(dashboard)/accounts/create/page";
-import AccountsPage from "./pages/(dashboard)/accounts/page";
-import DashboardPage from "./pages/(dashboard)/dashboard/page";
-import ImportsPage from "./pages/(dashboard)/imports/page";
-import DashboardLayout from "./pages/(dashboard)/layout";
-import SettingsPage from "./pages/(dashboard)/settings/page";
-import TransactionsPage from "./pages/(dashboard)/transactions/page";
-import SiteLayout from "./pages/(site)/layout";
-import IndexPage from "./pages/(site)/page";
+
+type PageComponentProps = { params?: Record<string, string | undefined> };
+type LayoutComponentProps = {
+  children: ReactNode;
+  params?: Record<string, string | undefined>;
+};
+
+const pageModules = import.meta.glob("/src/pages/**/page.tsx", {
+  eager: true,
+}) as Record<string, { default: ComponentType<PageComponentProps> }>;
+
+const layoutModules = import.meta.glob("/src/pages/**/layout.tsx", {
+  eager: true,
+}) as Record<string, { default: ComponentType<LayoutComponentProps> }>;
+
+const routes = Object.keys(pageModules).map((filePath) => {
+  const PageComponent = pageModules[filePath].default;
+
+  const relativePath = filePath.substring("/src/pages".length);
+  const pathHierarchy = relativePath.split("/").filter(Boolean).slice(0, -1);
+
+  const layouts: ComponentType<LayoutComponentProps>[] = [];
+  let routePath = "";
+
+  pathHierarchy.forEach((segment, index) => {
+    if (segment.startsWith("[") && segment.endsWith("]")) {
+      const strippedSegment = segment.slice(1, -1);
+      routePath += `/:${strippedSegment}`;
+    } else if (!(segment.startsWith("(") && segment.endsWith(")"))) {
+      routePath += `/${segment}`;
+    }
+
+    const layoutFilePath = `/src/pages/${pathHierarchy
+      .slice(0, index + 1)
+      .join("/")}/layout.tsx`;
+    if (layoutModules[layoutFilePath]) {
+      layouts.push(layoutModules[layoutFilePath].default);
+    }
+  });
+
+  return {
+    path: routePath,
+    Component: PageComponent,
+    layouts,
+    originalFilePath: filePath,
+  };
+});
+
+routes.sort((a, b) => {
+  const aPath = a.path;
+  const bPath = b.path;
+
+  const aSegments = aPath.split("/").filter(Boolean);
+  const bSegments = bPath.split("/").filter(Boolean);
+
+  if (aSegments.length !== bSegments.length) {
+    return bSegments.length - aSegments.length;
+  }
+
+  const aDynamicCount = (aPath.match(/:/g) || []).length;
+  const bDynamicCount = (bPath.match(/:/g) || []).length;
+  if (aDynamicCount !== bDynamicCount) {
+    return aDynamicCount - bDynamicCount;
+  }
+
+  for (let i = 0; i < aSegments.length; i++) {
+    const aIsDynamic = aSegments[i].startsWith(":");
+    const bIsDynamic = bSegments[i].startsWith(":");
+    if (!aIsDynamic && bIsDynamic) return -1;
+    if (aIsDynamic && !bIsDynamic) return 1;
+  }
+
+  return aPath.localeCompare(bPath);
+});
 
 export default function App() {
   return (
     <Switch>
-      <Route path="/">
-        <SiteLayout>
-          <IndexPage />
-        </SiteLayout>
-      </Route>
+      {routes.map(({ path, Component, layouts, originalFilePath }) => {
+        const RouteContentWrapper = (props: {
+          params: Record<string, string | undefined>;
+        }) => {
+          let content = <Component {...props} />;
 
-      <Route path="/dashboard">
-        <DashboardLayout>
-          <DashboardPage />
-        </DashboardLayout>
-      </Route>
+          for (let i = layouts.length - 1; i >= 0; i--) {
+            const LayoutComponent = layouts[i];
+            content = (
+              <LayoutComponent params={props.params}>{content}</LayoutComponent>
+            );
+          }
+          return content;
+        };
 
-      <Route path="/transactions">
-        <DashboardLayout>
-          <TransactionsPage />
-        </DashboardLayout>
-      </Route>
-
-      <Route path="/accounts">
-        <DashboardLayout>
-          <AccountsPage />
-        </DashboardLayout>
-      </Route>
-
-      <Route path="/accounts/create">
-        <DashboardLayout>
-          <CreateAccountPage />
-        </DashboardLayout>
-      </Route>
-
-      <Route path="/accounts/:accountId">
-        {(params) => (
-          <DashboardLayout>
-            <AccountPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
-      <Route path="/accounts/:accountId/transactions">
-        {(params) => (
-          <DashboardLayout>
-            <AccountTransactionsPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
-      <Route path="/accounts/:accountId/transactions/create">
-        {(params) => (
-          <DashboardLayout>
-            <CreateTransactionPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
-      <Route path="/accounts/:accountId/transactions/import">
-        {(params) => (
-          <DashboardLayout>
-            <ImportTransactionsPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
-      <Route path="/accounts/:accountId/securities">
-        {(params) => (
-          <DashboardLayout>
-            <AccountSecuritiesPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
-      <Route path="/accounts/:accountId/securities/import">
-        {(params) => (
-          <DashboardLayout>
-            <ImportSecuritiesPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
-      <Route path="/imports">
-        <DashboardLayout>
-          <ImportsPage />
-        </DashboardLayout>
-      </Route>
-
-      <Route path="/settings">
-        <DashboardLayout>
-          <SettingsPage />
-        </DashboardLayout>
-      </Route>
-
-      <Route path="/accounts/:accountId/securities/create">
-        {(params) => (
-          <DashboardLayout>
-            <CreateSecurityPage params={params} />
-          </DashboardLayout>
-        )}
-      </Route>
-
+        return (
+          <Route key={originalFilePath} path={path}>
+            {(params) => <RouteContentWrapper params={params} />}
+          </Route>
+        );
+      })}
       <Route>
         <h1>404: No such page!</h1>
       </Route>
