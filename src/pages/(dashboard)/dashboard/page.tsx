@@ -1,47 +1,36 @@
-import { ChartConfig } from "@/components/ui/chart";
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
-import { useDB } from "@/hooks/db";
-import { listPortfolioValues } from "@/lib/portfolio";
-import { useEffect, useState } from "react";
 import { HistoricalPortfolioValueGraph } from "./_components/historical-portfolio-value-graph";
 
-const chartConfig = {
-  amount: {
-    label: "Amount",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
-
 export default function DashboardPage() {
-  const { db } = useDB();
-  const [continuousAccountsSum, setContinuousAccountsSum] = useState<
-    { date: string; amount: number }[]
-  >([]);
+  // const { db } = useDB();
+  // const [continuousAccountsSum, setContinuousAccountsSum] = useState<
+  //   { date: string; amount: number }[]
+  // >([]);
 
-  useEffect(() => {
-    async function fetchData() {
-      setContinuousAccountsSum(await listPortfolioValues(db!, []));
-    }
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     setContinuousAccountsSum(await listPortfolioValues(db!, []));
+  //   }
 
-    fetchData();
-  }, [db]);
+  //   fetchData();
+  // }, [db]);
 
-  function gradientOffset() {
-    const dataMax = Math.max(...continuousAccountsSum.map((i) => i.amount));
-    const dataMin = Math.min(...continuousAccountsSum.map((i) => i.amount));
+  // function gradientOffset() {
+  //   const dataMax = Math.max(...continuousAccountsSum.map((i) => i.amount));
+  //   const dataMin = Math.min(...continuousAccountsSum.map((i) => i.amount));
 
-    if (dataMax <= 0) {
-      return 0;
-    }
-    if (dataMin >= 0) {
-      return 1;
-    }
+  //   if (dataMax <= 0) {
+  //     return 0;
+  //   }
+  //   if (dataMin >= 0) {
+  //     return 1;
+  //   }
 
-    return dataMax / (dataMax - dataMin);
-  }
+  //   return dataMax / (dataMax - dataMin);
+  // }
 
-  const off = gradientOffset();
+  // const off = gradientOffset();
 
   return (
     <ContentLayout header={<Header>Welcome back!</Header>}>
