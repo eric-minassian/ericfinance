@@ -80,13 +80,7 @@ export default function TransactionsPage() {
   ];
 
   return (
-    <ContentLayout
-      header={
-        <Header description="View and manage your transactions.">
-          Transactions
-        </Header>
-      }
-    >
+    <ContentLayout header={<Header>Transactions</Header>}>
       <DataTable
         data={transactions}
         columns={columns}

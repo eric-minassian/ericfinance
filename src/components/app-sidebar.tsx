@@ -1,4 +1,4 @@
-import { DatabaseIcon, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -6,36 +6,44 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useDB } from "@/hooks/db";
 import { Link, useLocation } from "wouter";
+import Icon from "./icon";
 
 const data = {
   navMain: [
     {
       title: "Dashboard",
       url: "/dashboard",
+      icon: <Icon variant="home" />,
     },
     {
       title: "Transactions",
       url: "/transactions",
+      icon: <Icon variant="card" />,
     },
     {
       title: "Accounts",
       url: "/accounts",
+      icon: <Icon variant="bank" />,
     },
     {
       title: "Imports",
       url: "/imports",
+      icon: <Icon variant="import" />,
     },
     {
       title: "Settings",
       url: "/settings",
+      icon: <Icon variant="settings" />,
     },
   ],
 };
@@ -49,40 +57,44 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <DatabaseIcon className="size-4" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Eric Finance</span>
-                  <span className="">v1.0.0</span>
-                </div>
-              </a>
+          <SidebarMenuItem className="flex gap-2">
+            <SidebarMenuButton
+              className="group-data-[collapsible=icon]:hidden"
+              asChild
+            >
+              <Link href="/">
+                <Icon variant="logo" />
+                EricFinance
+              </Link>
+            </SidebarMenuButton>
+            <SidebarMenuButton className="w-min" asChild>
+              <SidebarTrigger />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarMenu>
-            {data.navMain.map((item) => {
-              const isActive = location === item.url;
-              return (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive}>
-                    <Link href={item.url}>
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {data.navMain.map((item) => {
+                const isActive = location === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton isActive={isActive} asChild>
+                      <Link href={item.url}>
+                        {item.icon && item.icon}
+                        {item.title}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>

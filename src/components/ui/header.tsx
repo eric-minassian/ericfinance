@@ -8,14 +8,14 @@ export interface HeaderProps {
 
 export function Header({ description, actions, children }: HeaderProps) {
   return (
-    <div>
-      <div className="flex items-start justify-between flex-wrap gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">{children}</h1>
-        {actions && <div>{actions}</div>}
+    <header className="flex items-center justify-between flex-wrap gap-2">
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight">{children}</h1>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
-      {description && (
-        <p className="text-sm text-muted-foreground">{description}</p>
-      )}
-    </div>
+      {actions && <div>{actions}</div>}
+    </header>
   );
 }
