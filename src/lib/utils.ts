@@ -1,32 +1,22 @@
 import { clsx, type ClassValue } from "clsx";
+import currency from "currency.js";
+import { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function integerCurrencyFormat(
-  value: number | string,
-  locale = "en-US",
-  currency = "USD"
-): string {
-  const numberValue = typeof value === "string" ? parseFloat(value) : value;
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(numberValue / 100);
+export function formatDate(date: string) {
+  const d = new Date(date);
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+  });
 }
-
-export function currencyFormat(
-  value: number | string,
-  locale = "en-US",
-  currency = "USD"
-): string {
-  const numberValue = typeof value === "string" ? parseFloat(value) : value;
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-  }).format(numberValue);
+export function formatCurrency(value: ValueType) {
+  return currency(value.toString(), {
+    symbol: "$",
+    fromCents: true,
+  }).format();
 }
