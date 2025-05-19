@@ -26,15 +26,16 @@ const data = {
       icon: <Icon variant="home" />,
     },
     {
-      title: "Transactions",
-      url: "/transactions",
-      icon: <Icon variant="card" />,
-    },
-    {
       title: "Accounts",
       url: "/accounts",
       icon: <Icon variant="bank" />,
     },
+    {
+      title: "Transactions",
+      url: "/transactions",
+      icon: <Icon variant="card" />,
+    },
+
     {
       title: "Imports",
       url: "/imports",

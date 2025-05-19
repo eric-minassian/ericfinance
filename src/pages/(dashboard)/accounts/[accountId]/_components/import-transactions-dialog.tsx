@@ -1,5 +1,6 @@
 import Icon from "@/components/icon";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DialogContent,
   DialogDescription,
@@ -7,9 +8,33 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
+import { useQuery } from "@/hooks/use-query";
 import { Account } from "@/lib/db/schema/accounts";
-import { useState } from "react";
+import { Transaction } from "@/lib/db/schema/transactions";
+import { ParseResult } from "@/lib/parser";
+import { parseCSV } from "@/lib/parser/csv";
+import { createTransactions } from "@/lib/services/transactions/create-transactions";
+import { listTransactions } from "@/lib/services/transactions/list-transactions";
+import { formatCurrency } from "@/lib/utils";
+import currency from "currency.js";
+import { useEffect, useState } from "react";
 
 interface ImportTransactionsDialogProps {
   accountId: Account["id"];
@@ -18,11 +43,23 @@ interface ImportTransactionsDialogProps {
 export function ImportTransactionsDialog({
   accountId,
 }: ImportTransactionsDialogProps) {
-  const { db } = useDB();
-  const [file, setFile] = useState<File | undefined>(undefined);
+  const [data, setData] = useState<ParseResult | null>(null);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const csv = event.target?.result as string;
+      const result = parseCSV(csv);
+      setData(result);
+    };
+    reader.readAsText(selectedFile);
+  }
 
   return (
-    <DialogContent>
+    <DialogContent className="min-w-9/12 max-w-3xl">
       <DialogHeader>
         <DialogTitle>Upload CSV</DialogTitle>
         <DialogDescription>
@@ -39,20 +76,19 @@ export function ImportTransactionsDialog({
           .
         </DialogDescription>
       </DialogHeader>
-      {file ? (
-        <div>{file.name}</div>
+      {data ? (
+        <ImportTransactions
+          parseResult={data}
+          accountId={accountId}
+          setData={setData}
+        />
       ) : (
         <>
           <input
             id="file-upload"
             type="file"
             accept=".csv"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setFile(file);
-              }
-            }}
+            onChange={handleFileChange}
             className="hidden"
           />
           <label
@@ -70,7 +106,232 @@ export function ImportTransactionsDialog({
           </label>
         </>
       )}
-      <DialogFooter></DialogFooter>
     </DialogContent>
+  );
+}
+
+interface ImportTransactionsProps {
+  parseResult: ParseResult;
+  accountId: Account["id"];
+  setData: React.Dispatch<React.SetStateAction<ParseResult | null>>;
+}
+
+function ImportTransactions({
+  parseResult,
+  accountId,
+  setData,
+}: ImportTransactionsProps) {
+  const { db } = useDB();
+  const { data: existingTransactions } = useQuery(
+    () => listTransactions({ db: db!, accountId }),
+    [db, accountId]
+  );
+
+  const [dateKey, setDateKey] = useState<string | null>(null);
+  const [amountKey, setAmountKey] = useState<string | null>(null);
+  const [payeeKey, setPayeeKey] = useState<string | null>(null);
+  const [notesKey, setNotesKey] = useState<string | null>(null);
+  const [isInvertAmount, setIsInvertAmount] = useState(false);
+
+  const [transactionsPreview, setTransactionsPreview] = useState<
+    Array<
+      Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+        isDuplicate: boolean;
+      }
+    >
+  >([]);
+
+  const columns = [
+    { label: "Date", value: dateKey, setKey: setDateKey },
+    { label: "Amount", value: amountKey, setKey: setAmountKey },
+    { label: "Payee", value: payeeKey, setKey: setPayeeKey },
+    { label: "Notes", value: notesKey, setKey: setNotesKey },
+  ];
+
+  useEffect(() => {
+    const headerMap = new Map([
+      [/(date|when|time)/i, setDateKey],
+      [/(amount|sum|price|total)/i, setAmountKey],
+      [/(payee|recipient|vendor|merchant|description)/i, setPayeeKey],
+      [/(notes|memo|details|comment)/i, setNotesKey],
+    ]);
+
+    parseResult.headers.forEach((header) => {
+      for (const [pattern, setter] of headerMap) {
+        if (pattern.test(header)) {
+          setter(header);
+          break;
+        }
+      }
+    });
+  }, [parseResult]);
+
+  useEffect(() => {
+    if (!parseResult.rows.length) return;
+    if (!dateKey || !amountKey || !payeeKey) return;
+
+    const transactions = parseResult.rows.map((row) => {
+      const date = new Date(row[dateKey]);
+      const amount = (
+        isInvertAmount
+          ? currency(row[amountKey]).multiply(-1)
+          : currency(row[amountKey])
+      ).intValue;
+      const payee = row[payeeKey];
+      const notes = notesKey !== null ? row[notesKey].trim() : null;
+
+      const isDuplicate = existingTransactions?.some(
+        (transaction) =>
+          transaction.date.getTime() === date.getTime() &&
+          transaction.amount === amount &&
+          transaction.payee === payee &&
+          transaction.notes === notes
+      );
+
+      return {
+        date,
+        amount,
+        payee,
+        notes,
+        isDuplicate: !!isDuplicate,
+      };
+    });
+
+    setTransactionsPreview(transactions);
+  }, [
+    parseResult,
+    dateKey,
+    amountKey,
+    payeeKey,
+    notesKey,
+    isInvertAmount,
+    existingTransactions,
+  ]);
+
+  async function handleImport() {
+    await createTransactions({
+      db: db!,
+      accountId,
+      transactions: transactionsPreview.filter(
+        (transaction) => !transaction.isDuplicate
+      ),
+    });
+
+    setData(null);
+    setTransactionsPreview([]);
+    setDateKey(null);
+    setAmountKey(null);
+    setPayeeKey(null);
+    setNotesKey(null);
+    setIsInvertAmount(false);
+  }
+
+  return (
+    <>
+      <div className="flex gap-4">
+        {columns.map((column, i) => (
+          <div key={i} className="space-y-1">
+            <Label htmlFor={column.label}>{column.label}</Label>
+            <Select
+              value={column.value ?? "none"}
+              onValueChange={(value) =>
+                column.setKey(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Select column</SelectItem>
+                {parseResult.headers.map((header) => (
+                  <SelectItem key={header} value={header}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            checked={isInvertAmount}
+            onCheckedChange={(checked) =>
+              checked !== "indeterminate" && setIsInvertAmount(checked)
+            }
+          />
+          <Label>Invert amount values</Label>
+        </div>
+      </div>
+
+      <ImportTransactionsPreview
+        transactions={transactionsPreview}
+        setTransactions={setTransactionsPreview}
+      />
+
+      <DialogFooter>
+        <Button onClick={handleImport}>Import</Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+interface ImportTransactionsPreviewProps {
+  transactions: Array<
+    Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+      isDuplicate: boolean;
+    }
+  >;
+  setTransactions: React.Dispatch<
+    React.SetStateAction<
+      Array<
+        Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+          isDuplicate: boolean;
+        }
+      >
+    >
+  >;
+}
+
+function ImportTransactionsPreview({
+  transactions,
+  setTransactions,
+}: ImportTransactionsPreviewProps) {
+  return (
+    <div className="max-h-[60vh] overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Duplicate</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Payee</TableHead>
+            <TableHead>Notes</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {transactions.map((transaction, rowIdx) => (
+            <TableRow key={rowIdx}>
+              <TableCell>
+                <Checkbox
+                  checked={transaction.isDuplicate}
+                  onCheckedChange={() =>
+                    setTransactions((prev) =>
+                      prev.map((r, i) =>
+                        i === rowIdx ? { ...r, isDuplicate: !r.isDuplicate } : r
+                      )
+                    )
+                  }
+                />
+              </TableCell>
+              <TableCell>{transaction.date.toLocaleDateString()}</TableCell>
+              <TableCell>{formatCurrency(transaction.amount)}</TableCell>
+              <TableCell>{transaction.payee}</TableCell>
+              <TableCell>{transaction.notes}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
