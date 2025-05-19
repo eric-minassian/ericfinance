@@ -1,10 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
-import { SpaceBetween } from "@/components/ui/space-between";
-import { Link } from "wouter";
-import { SecuritiesGraph } from "./_components/securities-graph";
-import { SecuritiesSummary } from "./_components/securities-summary";
+import { useDB } from "@/hooks/db";
+import { useQuery } from "@/hooks/use-query";
+import { getAccount } from "@/lib/services/accounts/get-account";
+import { EditAccountDropdown } from "./_components/edit-account-dropdown";
 
 interface AccountPageProps {
   params: {
@@ -13,32 +12,21 @@ interface AccountPageProps {
 }
 
 export default function AccountPage({ params }: AccountPageProps) {
+  const { db } = useDB();
+  const { data } = useQuery(
+    async () => getAccount({ db: db!, accountId: params.accountId }),
+    [db, params.accountId]
+  );
+
   return (
     <ContentLayout
       header={
-        <Header
-          description="View and manage your account."
-          actions={
-            <SpaceBetween>
-              <Button asChild>
-                <Link href={`/accounts/${params.accountId}/transactions`}>
-                  View Transactions
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href={`/accounts/${params.accountId}/securities`}>
-                  View Securities
-                </Link>
-              </Button>
-            </SpaceBetween>
-          }
-        >
-          Account {params.accountId}
+        <Header actions={<EditAccountDropdown accountId={params.accountId} />}>
+          Account {data?.name}
         </Header>
       }
     >
-      <SecuritiesGraph accountId={params.accountId} />
-      <SecuritiesSummary accountId={params.accountId} />
+      Eric
     </ContentLayout>
   );
 }

@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import {
   ChartNoAxesCombined,
+  ChevronDown,
   Columns3Cog,
   CreditCard,
   Home,
@@ -9,6 +10,8 @@ import {
   Plus,
   RefreshCw,
   Settings,
+  Upload,
+  X,
 } from "lucide-react";
 
 const iconMap = {
@@ -21,6 +24,9 @@ const iconMap = {
   settings: Settings,
   customize: Columns3Cog,
   plus: Plus,
+  chevronDown: ChevronDown,
+  upload: Upload,
+  x: X,
 };
 
 interface IconProps {
