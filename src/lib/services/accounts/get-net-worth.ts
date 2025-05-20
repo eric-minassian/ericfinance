@@ -1,9 +1,11 @@
+import { Account } from "@/lib/db/schema/accounts";
 import { transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
-import { asc, sum } from "drizzle-orm";
+import { asc, eq, sum } from "drizzle-orm";
 
 interface GetHistoricalNetWorthRequest {
   db: Database;
+  accountId?: Account["id"];
 }
 
 type GetHistoricalNetWorthResponse = Array<{
@@ -13,6 +15,7 @@ type GetHistoricalNetWorthResponse = Array<{
 
 export async function getHistoricalNetWorth({
   db,
+  accountId,
 }: GetHistoricalNetWorthRequest): Promise<GetHistoricalNetWorthResponse> {
   const transactionsTotalByDate = await db
     .select({
@@ -20,6 +23,7 @@ export async function getHistoricalNetWorth({
       total: sum(transactionsTable.amount),
     })
     .from(transactionsTable)
+    .where(accountId ? eq(transactionsTable.accountId, accountId) : undefined)
     .groupBy(transactionsTable.date)
     .orderBy(asc(transactionsTable.date));
 

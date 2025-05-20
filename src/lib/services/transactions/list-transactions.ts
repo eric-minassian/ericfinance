@@ -1,10 +1,11 @@
+import { Account } from "@/lib/db/schema/accounts";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { eq } from "drizzle-orm";
 
 interface ListTransactionsRequest {
   db: Database;
-  accountId?: string;
+  accountId?: Account["id"];
 }
 
 type ListTransactionsResponse = Array<

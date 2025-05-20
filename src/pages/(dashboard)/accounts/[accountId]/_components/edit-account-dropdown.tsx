@@ -35,7 +35,7 @@ export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
     <Dialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary">
+          <Button variant="outline">
             Edit
             <Icon variant="chevronDown" />
           </Button>
