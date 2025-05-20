@@ -1,8 +1,10 @@
+import { TransactionsTable } from "@/components/transactions-table";
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
 import { useQuery } from "@/hooks/use-query";
 import { getAccount } from "@/lib/services/accounts/get-account";
+import { NetWorthChart } from "../_components/net-worth-chart";
 import { EditAccountDropdown } from "./_components/edit-account-dropdown";
 
 interface AccountPageProps {
@@ -26,7 +28,8 @@ export default function AccountPage({ params }: AccountPageProps) {
         </Header>
       }
     >
-      Eric
+      <NetWorthChart accountId={params.accountId} />
+      <TransactionsTable accountId={params.accountId} />
     </ContentLayout>
   );
 }

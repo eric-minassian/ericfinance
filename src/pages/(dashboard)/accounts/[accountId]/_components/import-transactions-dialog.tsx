@@ -32,7 +32,7 @@ import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
 import { createTransactions } from "@/lib/services/transactions/create-transactions";
 import { listTransactions } from "@/lib/services/transactions/list-transactions";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseUTCDate } from "@/lib/utils";
 import currency from "currency.js";
 import { useEffect, useState } from "react";
 
@@ -171,7 +171,7 @@ function ImportTransactions({
     if (!dateKey || !amountKey || !payeeKey) return;
 
     const transactions = parseResult.rows.map((row) => {
-      const date = new Date(row[dateKey]);
+      const date = parseUTCDate(row[dateKey]);
       const amount = (
         isInvertAmount
           ? currency(row[amountKey]).multiply(-1)

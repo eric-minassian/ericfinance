@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/chart";
 import { useDB } from "@/hooks/db";
 import { useQuery } from "@/hooks/use-query";
+import { Account } from "@/lib/db/schema/accounts";
 import { getHistoricalNetWorth } from "@/lib/services/accounts/get-net-worth";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDateString } from "@/lib/utils";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 const chartConfig = {
@@ -24,11 +25,15 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function NetWorthChart() {
+interface NetWorthChartProps {
+  accountId?: Account["id"];
+}
+
+export function NetWorthChart({ accountId }: NetWorthChartProps) {
   const { db } = useDB();
   const { data } = useQuery(
-    async () => getHistoricalNetWorth({ db: db! }),
-    [db]
+    async () => getHistoricalNetWorth({ db: db!, accountId }),
+    [db, accountId]
   );
 
   return (
@@ -55,7 +60,7 @@ export function NetWorthChart() {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={formatDate}
+              tickFormatter={formatDateString}
             />
             <YAxis dataKey="netWorthInCents" tickFormatter={formatCurrency} />
             <ChartTooltip
@@ -63,7 +68,7 @@ export function NetWorthChart() {
               content={
                 <ChartTooltipContent
                   formatter={formatCurrency}
-                  labelFormatter={formatDate}
+                  labelFormatter={formatDateString}
                 />
               }
             />
