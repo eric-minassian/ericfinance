@@ -25,7 +25,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
-import { useQuery } from "@/hooks/use-query";
 import { Account } from "@/lib/db/schema/accounts";
 import { Transaction } from "@/lib/db/schema/transactions";
 import { ParseResult } from "@/lib/parser";
@@ -33,6 +32,7 @@ import { parseCSV } from "@/lib/parser/csv";
 import { createTransactions } from "@/lib/services/transactions/create-transactions";
 import { listTransactions } from "@/lib/services/transactions/list-transactions";
 import { formatCurrency, parseUTCDate } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import currency from "currency.js";
 import { useEffect, useState } from "react";
 
@@ -122,10 +122,10 @@ function ImportTransactions({
   setData,
 }: ImportTransactionsProps) {
   const { db } = useDB();
-  const { data: existingTransactions } = useQuery(
-    () => listTransactions({ db: db!, accountId }),
-    [db, accountId]
-  );
+  const { data: existingTransactions } = useQuery({
+    queryKey: ["listTransactions", accountId],
+    queryFn: () => listTransactions({ db: db!, accountId }),
+  });
 
   const [dateKey, setDateKey] = useState<string | null>(null);
   const [amountKey, setAmountKey] = useState<string | null>(null);
