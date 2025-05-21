@@ -8,14 +8,17 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useDB } from "@/hooks/db";
-import { useQuery } from "@/hooks/use-query";
 import { listAccounts } from "@/lib/services/accounts/list-accounts";
 import { cn, formatCurrency } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 
 export function AccountsList() {
   const { db } = useDB();
-  const { data } = useQuery(async () => listAccounts({ db: db! }), [db]);
+  const { data } = useQuery({
+    queryKey: ["listAccounts"],
+    queryFn: async () => listAccounts({ db: db! }),
+  });
 
   return (
     <Card>

@@ -12,10 +12,10 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useDB } from "@/hooks/db";
-import { useQuery } from "@/hooks/use-query";
 import { Account } from "@/lib/db/schema/accounts";
 import { getHistoricalNetWorth } from "@/lib/services/accounts/get-net-worth";
 import { formatCurrency, formatDateString } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 const chartConfig = {
@@ -31,10 +31,10 @@ interface NetWorthChartProps {
 
 export function NetWorthChart({ accountId }: NetWorthChartProps) {
   const { db } = useDB();
-  const { data } = useQuery(
-    async () => getHistoricalNetWorth({ db: db!, accountId }),
-    [db, accountId]
-  );
+  const { data } = useQuery({
+    queryKey: ["getHistoricalNetWorth", accountId],
+    queryFn: () => getHistoricalNetWorth({ db: db!, accountId }),
+  });
 
   return (
     <Card>

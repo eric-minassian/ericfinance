@@ -4,8 +4,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useDB } from "@/hooks/db";
-import { useQuery } from "@/hooks/use-query";
 import { historicalPortfolioValue } from "@/lib/services/portfolio/historical-portfolio-value";
+import { useQuery } from "@tanstack/react-query";
 import currency from "currency.js";
 import {
   Area,
@@ -19,12 +19,14 @@ import {
 export function HistoricalPortfolioValueGraph() {
   const { db } = useDB();
 
-  const { data, error, isPending } = useQuery(async () =>
-    (await historicalPortfolioValue({ db: db! })).map((item) => ({
-      date: item.date.toString(),
-      valueInCents: item.valueInCents,
-    }))
-  );
+  const { data, error, isPending } = useQuery({
+    queryKey: ["historicalPortfolioValue"],
+    queryFn: async () =>
+      (await historicalPortfolioValue({ db: db! })).map((item) => ({
+        date: item.date.toString(),
+        valueInCents: item.valueInCents,
+      })),
+  });
 
   if (error) {
     return (
