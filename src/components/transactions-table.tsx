@@ -1,12 +1,11 @@
 import { useDB } from "@/hooks/db";
-import { useQuery } from "@/hooks/use-query";
+import { useInfiniteTransactions } from "@/hooks/use-infinite-transactions";
 import { Account } from "@/lib/db/schema/accounts";
-import { listTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-grouped-by-date";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import Icon from "./icon";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { ScrollArea } from "./ui/scroll-area";
+import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "./ui/table";
 
 interface TransactionsTableProps {
@@ -15,10 +14,13 @@ interface TransactionsTableProps {
 
 export function TransactionsTable({ accountId }: TransactionsTableProps) {
   const { db } = useDB();
-  const { data } = useQuery(
-    () => listTransactionsGroupedByDate({ db: db!, accountId }),
-    [db, accountId]
-  );
+  const {
+    groupedTransactions,
+    isFetching,
+    hasNextPage,
+    initialLoadAttempted,
+    ref,
+  } = useInfiniteTransactions({ accountId, db });
 
   return (
     <Card>
@@ -34,8 +36,8 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
       <ScrollArea className="h-[55vh] w-full">
         <CardContent>
           <Table>
-            {data?.map((group) => (
-              <TableBody key={group.date.toString()}>
+            {groupedTransactions.map((group, idx) => (
+              <TableBody key={`${group.date.toISOString()}-${idx}`}>
                 <TableRow className="bg-muted text-xs">
                   <TableHead colSpan={2} className="text-muted-foreground h-8">
                     {formatDate(group.date)}
@@ -56,7 +58,20 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
               </TableBody>
             ))}
           </Table>
+          {isFetching && (
+            <div className="flex justify-center py-4">Loading...</div>
+          )}
+          {!isFetching &&
+            !hasNextPage &&
+            groupedTransactions.length === 0 &&
+            initialLoadAttempted && (
+              <div className="flex justify-center py-4 text-muted-foreground">
+                No transactions found.
+              </div>
+            )}
+          {hasNextPage && <div ref={ref} style={{ height: "1px" }} />}
         </CardContent>
+        <ScrollBar orientation="vertical" />
       </ScrollArea>
     </Card>
   );

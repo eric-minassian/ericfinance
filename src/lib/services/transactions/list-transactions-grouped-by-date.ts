@@ -6,6 +6,8 @@ import { desc, eq, sql, sum } from "drizzle-orm";
 interface ListTransactionsGroupedByDateRequest {
   db: Database;
   accountId?: Account["id"];
+  page?: number;
+  pageSize?: number;
 }
 
 type ListTransactionsGroupedByDateResponse = Array<{
@@ -19,7 +21,10 @@ type TransactionDetails = Pick<Transaction, "id" | "amount" | "payee">;
 export async function listTransactionsGroupedByDate({
   db,
   accountId,
+  page = 1,
+  pageSize = 20,
 }: ListTransactionsGroupedByDateRequest): Promise<ListTransactionsGroupedByDateResponse> {
+  const offset = (page - 1) * pageSize;
   const results = await db
     .select({
       date: transactionsTable.date,
@@ -35,7 +40,9 @@ export async function listTransactionsGroupedByDate({
     .from(transactionsTable)
     .where(accountId ? eq(transactionsTable.accountId, accountId) : undefined)
     .groupBy(transactionsTable.date)
-    .orderBy(desc(transactionsTable.date));
+    .orderBy(desc(transactionsTable.date))
+    .limit(pageSize)
+    .offset(offset);
 
   return results.map((row) => ({
     ...row,
