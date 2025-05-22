@@ -10,6 +10,7 @@ import {
   Plus,
   RefreshCw,
   Settings,
+  Trash,
   Upload,
   X,
 } from "lucide-react";
@@ -27,6 +28,7 @@ const iconMap = {
   chevronDown: ChevronDown,
   upload: Upload,
   x: X,
+  trash: Trash,
 };
 
 interface IconProps {

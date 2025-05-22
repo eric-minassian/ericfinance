@@ -3,6 +3,7 @@ import { type InferSelectModel } from "drizzle-orm";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
 import { accountsTable } from "./accounts";
+import { categoriesTable } from "./categories";
 import { importsTable } from "./imports";
 
 export const transactionsTable = sqliteTable("transactions", {
@@ -15,6 +16,9 @@ export const transactionsTable = sqliteTable("transactions", {
     .references(() => accountsTable.id, { onDelete: "cascade" }),
   importId: text("import_id").references(() => importsTable.id, {
     onDelete: "cascade",
+  }),
+  categoryId: text("category_id").references(() => categoriesTable.id, {
+    onDelete: "set null",
   }),
 
   amount: int("amount").notNull(),

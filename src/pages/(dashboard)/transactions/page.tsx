@@ -10,7 +10,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { eq } from "drizzle-orm";
 import { useEffect, useState } from "react";
 
-type CombinedTransaction = Omit<Transaction, "accountId" | "rawData"> & {
+type CombinedTransaction = Omit<
+  Transaction,
+  "accountId" | "rawData" | "categoryId"
+> & {
   accountName: Account["name"];
 };
 
