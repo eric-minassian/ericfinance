@@ -11,6 +11,7 @@ import {
 } from "@/lib/db/schema/settings";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ListCategories } from "./_components/list-categories";
 
 export default function SettingsPage() {
   const { db } = useDB();
@@ -63,6 +64,7 @@ export default function SettingsPage() {
     <ContentLayout
       header={<Header description="Configure your settings">Settings</Header>}
     >
+      <ListCategories />
       <form.AppForm>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Card>

@@ -16,7 +16,10 @@ type ListTransactionsGroupedByDateResponse = Array<{
   total: number;
 }>;
 
-type TransactionDetails = Pick<Transaction, "id" | "amount" | "payee">;
+type TransactionDetails = Pick<
+  Transaction,
+  "id" | "amount" | "payee" | "categoryId"
+>;
 
 export async function listTransactionsGroupedByDate({
   db,
@@ -33,7 +36,8 @@ export async function listTransactionsGroupedByDate({
         json_object(
           'id', ${transactionsTable.id},
           'amount', ${transactionsTable.amount},
-          'payee', ${transactionsTable.payee}
+          'payee', ${transactionsTable.payee},
+          'categoryId', ${transactionsTable.categoryId}
         )
       )`,
     })
