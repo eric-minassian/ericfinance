@@ -35,13 +35,16 @@ import { formatCurrency, parseUTCDate } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import currency from "currency.js";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface ImportTransactionsDialogProps {
   accountId: Account["id"];
+  setDialogOpen: (open: boolean) => void;
 }
 
 export function ImportTransactionsDialog({
   accountId,
+  setDialogOpen,
 }: ImportTransactionsDialogProps) {
   const [data, setData] = useState<ParseResult | null>(null);
 
@@ -81,6 +84,7 @@ export function ImportTransactionsDialog({
           parseResult={data}
           accountId={accountId}
           setData={setData}
+          setDialogOpen={setDialogOpen}
         />
       ) : (
         <>
@@ -114,12 +118,14 @@ interface ImportTransactionsProps {
   parseResult: ParseResult;
   accountId: Account["id"];
   setData: React.Dispatch<React.SetStateAction<ParseResult | null>>;
+  setDialogOpen: (open: boolean) => void;
 }
 
 function ImportTransactions({
   parseResult,
   accountId,
   setData,
+  setDialogOpen,
 }: ImportTransactionsProps) {
   const { db } = useDB();
   const { data: existingTransactions } = useQuery({
@@ -218,6 +224,8 @@ function ImportTransactions({
       ),
     });
 
+    toast.success("Transactions imported successfully");
+
     setData(null);
     setTransactionsPreview([]);
     setDateKey(null);
@@ -225,6 +233,7 @@ function ImportTransactions({
     setPayeeKey(null);
     setNotesKey(null);
     setIsInvertAmount(false);
+    setDialogOpen(false);
   }
 
   return (

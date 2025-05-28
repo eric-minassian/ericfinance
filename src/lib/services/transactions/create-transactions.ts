@@ -1,3 +1,4 @@
+import { queryClient } from "@/context/query";
 import { importsTable } from "@/lib/db/schema/imports";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
@@ -49,6 +50,13 @@ export async function createTransactions({
   if (newTransactionIds.length > 0) {
     await applyRules({ db, transactionIds: newTransactionIds });
   }
+
+  queryClient.invalidateQueries({
+    queryKey: ["transactions", accountId],
+  });
+  queryClient.invalidateQueries({
+    queryKey: ["accounts", accountId],
+  });
 
   return;
 }
