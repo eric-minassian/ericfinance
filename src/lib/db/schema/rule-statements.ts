@@ -9,7 +9,7 @@ export const ruleStatementsTable = sqliteTable("rule_statements", {
     .$defaultFn(() => createId()),
 
   ruleId: text("rule_id")
-    .references(() => rulesTable.id)
+    .references(() => rulesTable.id, { onDelete: "cascade" })
     .notNull(),
 
   field: text("field").notNull(),

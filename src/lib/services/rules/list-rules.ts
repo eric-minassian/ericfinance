@@ -34,10 +34,11 @@ export async function listRules({
     )`,
     })
     .from(rulesTable)
-    .innerJoin(
+    .leftJoin(
       ruleStatementsTable,
       eq(rulesTable.id, ruleStatementsTable.ruleId)
-    );
+    )
+    .groupBy(rulesTable.id);
 
   return results.map((row) => ({
     ...row,

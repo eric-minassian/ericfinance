@@ -2,6 +2,7 @@ import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListCategories } from "./_components/list-categories";
+import { ListRules } from "./_components/list-rules";
 export default function SettingsPage() {
   return (
     <ContentLayout
@@ -17,7 +18,9 @@ export default function SettingsPage() {
         <TabsContent value="categories">
           <ListCategories />
         </TabsContent>
-        <TabsContent value="rules">Rules</TabsContent>
+        <TabsContent value="rules">
+          <ListRules />
+        </TabsContent>
       </Tabs>
     </ContentLayout>
   );
