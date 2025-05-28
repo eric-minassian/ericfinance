@@ -7,7 +7,9 @@ export const rulesTable = sqliteTable("rules", {
     .primaryKey()
     .$defaultFn(() => createId()),
 
-  updateField: text("update_field").notNull(),
+  updateField: text("update_field", {
+    enum: ["categoryId", "payee", "notes"],
+  }).notNull(),
   updateValue: text("update_value").notNull(),
 });
 

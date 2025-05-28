@@ -5,6 +5,7 @@ import {
 } from "@/lib/db/schema/rule-statements";
 import { Rule, rulesTable } from "@/lib/db/schema/rules";
 import { Database } from "@/lib/types";
+import { applyRules } from "./apply-rules";
 
 interface CreateRuleRequest {
   db: Database;
@@ -34,6 +35,8 @@ export async function createRule({
       }))
     );
   });
+
+  await applyRules({ db });
 
   queryClient.invalidateQueries({ queryKey: ["rules"] });
 }

@@ -194,6 +194,7 @@ function ImportTransactions({
         payee,
         notes,
         isDuplicate: !!isDuplicate,
+        rawData: row,
       };
     });
 
