@@ -1,3 +1,4 @@
+import { queryClient } from "@/context/query";
 import {
   RuleStatement,
   ruleStatementsTable,
@@ -33,4 +34,6 @@ export async function createRule({
       }))
     );
   });
+
+  queryClient.invalidateQueries({ queryKey: ["rules"] });
 }
