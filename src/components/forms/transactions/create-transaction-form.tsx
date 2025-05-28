@@ -8,6 +8,7 @@ import {
   transactionFormSchema,
   transactionsTable,
 } from "@/lib/db/schema/transactions";
+import { applyRules } from "@/lib/services/rules/apply-rules";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
@@ -48,10 +49,17 @@ export function CreateTransactionForm({
       }
 
       try {
-        await db.insert(transactionsTable).values({
-          ...parsedValue,
-          accountId,
-        });
+        const [newTransaction] = await db
+          .insert(transactionsTable)
+          .values({
+            ...parsedValue,
+            accountId,
+          })
+          .returning({ id: transactionsTable.id });
+
+        if (newTransaction.id) {
+          await applyRules({ db, transactionIds: [newTransaction.id] });
+        }
       } catch (error) {
         console.error("Error creating transaction:", error);
         toast.error("Failed to create transaction");

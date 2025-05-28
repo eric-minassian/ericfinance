@@ -60,7 +60,7 @@ const ruleStatementValidator = z.object({
 });
 
 const createRuleFormValidator = z.object({
-  updateField: z.enum(["category", "payee", "notes"]),
+  updateField: z.enum(["categoryId", "payee", "notes"]),
   updateValue: z.string().min(1, "Update value is required"),
   statements: z
     .array(ruleStatementValidator)
@@ -72,7 +72,7 @@ interface CreateRuleDialogProps {
 }
 
 const UPDATE_FIELDS = [
-  { value: "category", label: "Category" },
+  { value: "categoryId", label: "Category" },
   { value: "payee", label: "Payee" },
   { value: "notes", label: "Notes" },
 ] as const;
@@ -101,7 +101,7 @@ function CreateRuleDialog({ setOpen }: CreateRuleDialogProps) {
   const form = useAppForm({
     validators: { onSubmit: createRuleFormValidator },
     defaultValues: {
-      updateField: "category",
+      updateField: "categoryId",
       updateValue: "",
       statements: [
         {
@@ -197,7 +197,7 @@ function CreateRuleDialog({ setOpen }: CreateRuleDialogProps) {
                   <field.FormFieldItem>
                     <field.FormFieldLabel>Update Value</field.FormFieldLabel>
                     <field.FormFieldControl>
-                      {updateField === "category" ? (
+                      {updateField === "categoryId" ? (
                         <Select
                           value={field.state.value}
                           onValueChange={(value) => field.handleChange(value)}

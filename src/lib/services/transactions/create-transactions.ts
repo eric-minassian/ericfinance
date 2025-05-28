@@ -1,6 +1,7 @@
 import { importsTable } from "@/lib/db/schema/imports";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
+import { applyRules } from "../rules/apply-rules";
 
 interface CreateTransactionsRequest {
   db: Database;
@@ -10,6 +11,7 @@ interface CreateTransactionsRequest {
     amount: Transaction["amount"];
     payee: Transaction["payee"];
     notes: Transaction["notes"];
+    rawData?: Transaction["rawData"];
   }>;
 }
 
@@ -24,20 +26,29 @@ export async function createTransactions({
     throw new Error("No transactions to import");
   }
 
-  await db.transaction(async (tx) => {
+  const newTransactionIds = await db.transaction(async (tx) => {
     const [importRecord] = await tx
       .insert(importsTable)
       .values({})
       .returning({ id: importsTable.id });
 
-    await tx.insert(transactionsTable).values(
-      transactions.map((transaction) => ({
-        ...transaction,
-        accountId,
-        importId: importRecord.id,
-      }))
-    );
+    const insertedTransactions = await tx
+      .insert(transactionsTable)
+      .values(
+        transactions.map((transaction) => ({
+          ...transaction,
+          accountId,
+          importId: importRecord.id,
+        }))
+      )
+      .returning({ id: transactionsTable.id });
+
+    return insertedTransactions.map((t) => t.id);
   });
+
+  if (newTransactionIds.length > 0) {
+    await applyRules({ db, transactionIds: newTransactionIds });
+  }
 
   return;
 }
