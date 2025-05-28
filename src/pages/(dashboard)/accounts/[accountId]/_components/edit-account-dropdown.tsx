@@ -11,6 +11,7 @@ import {
 import { useDB } from "@/hooks/db";
 import { Account } from "@/lib/db/schema/accounts";
 import { deleteAccount } from "@/lib/services/accounts/delete-accoun";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 import { ImportTransactionsDialog } from "./import-transactions-dialog";
@@ -22,6 +23,8 @@ interface EditAccountDropdownProps {
 export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
   const { db } = useDB();
   const [, navigate] = useLocation();
+  const [importTransactionsDialogOpen, setImportTransactionsDialogOpen] =
+    useState(false);
 
   async function handleDeleteAccount() {
     if (confirm("Are you sure you want to delete this account?")) {
@@ -32,7 +35,10 @@ export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
   }
 
   return (
-    <Dialog>
+    <Dialog
+      open={importTransactionsDialogOpen}
+      onOpenChange={setImportTransactionsDialogOpen}
+    >
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">
@@ -52,7 +58,10 @@ export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ImportTransactionsDialog accountId={accountId} />
+      <ImportTransactionsDialog
+        accountId={accountId}
+        setDialogOpen={setImportTransactionsDialogOpen}
+      />
     </Dialog>
   );
 }
