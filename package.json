@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "shadcn:add": "pnpm dlx shadcn@latest add",
     "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/sql.js/",
-    "db:generate": "drizzle-kit generate && ts-node ./scripts/generate-migrations-index.ts"
+    "db:generate": "drizzle-kit generate && ts-node ./scripts/generate-migrations-index.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@paralleldrive/cuid2": "^2.2.2",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.27.0",
+    "@playwright/test": "^1.52.0",
     "@types/node": "^22.15.21",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.1.5",
