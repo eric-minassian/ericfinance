@@ -6,10 +6,14 @@ import {
   CreditCard,
   Home,
   Import,
+  Key,
   Landmark,
+  Lock,
   Plus,
   RefreshCw,
   Settings,
+  Shield,
+  ShieldCheck,
   Trash,
   Upload,
   X,
@@ -29,6 +33,10 @@ const iconMap = {
   upload: Upload,
   x: X,
   trash: Trash,
+  shield: Shield,
+  shieldCheck: ShieldCheck,
+  lock: Lock,
+  key: Key,
 };
 
 interface IconProps {

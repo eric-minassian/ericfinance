@@ -7,6 +7,11 @@ type DBContextType = {
   db: SQLJsDatabase<typeof schema> | null;
   exportDB: () => void;
   createEmptyDB: () => Promise<void>;
+  createEncryptedDB: (password: string) => Promise<void>;
+  showCreateEncryptedDialog: () => void;
+  changePassword: () => void;
+  addEncryption: () => void;
+  isEncrypted: boolean;
 };
 
 export const DBContext = createContext<DBContextType>({
@@ -14,4 +19,9 @@ export const DBContext = createContext<DBContextType>({
   db: null,
   exportDB: () => null,
   createEmptyDB: () => Promise.resolve(),
+  createEncryptedDB: () => Promise.resolve(),
+  showCreateEncryptedDialog: () => null,
+  changePassword: () => null,
+  addEncryption: () => null,
+  isEncrypted: false,
 });
