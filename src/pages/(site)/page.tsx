@@ -4,7 +4,7 @@ import { useDB } from "@/hooks/db";
 import { Redirect } from "wouter";
 
 export default function IndexPage() {
-  const { db, setFile, createEmptyDB } = useDB();
+  const { db, setFile, createEmptyDB, showCreateEncryptedDialog } = useDB();
 
   if (db) {
     return <Redirect to="/dashboard" />;
@@ -27,13 +27,26 @@ export default function IndexPage() {
           </p>
         </div>
         <div className="space-y-2">
-          <Input type="file" accept=".db" onChange={handleFileChange} />
+          <Input type="file" accept=".db,.enc" onChange={handleFileChange} />
           <div className="text-center my-2">
             <p className="text-sm text-muted-foreground">or</p>
           </div>
-          <Button variant="outline" onClick={createEmptyDB} className="w-full">
-            Create New Database
-          </Button>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              onClick={createEmptyDB}
+              className="w-full"
+            >
+              Create New Database
+            </Button>
+            <Button
+              variant="outline"
+              onClick={showCreateEncryptedDialog}
+              className="w-full"
+            >
+              Create Encrypted Database
+            </Button>
+          </div>
         </div>
       </div>
     </div>
