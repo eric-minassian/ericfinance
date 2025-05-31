@@ -25,13 +25,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDB } from "@/hooks/db";
+import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { Transaction } from "@/lib/db/schema/transactions";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
 import { createTransactions } from "@/lib/services/transactions/create-transactions";
 import { listTransactions } from "@/lib/services/transactions/list-transactions";
-import { formatCurrency, parseUTCDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import currency from "currency.js";
 import { useEffect, useState } from "react";
@@ -141,7 +142,8 @@ function ImportTransactions({
 
   const [transactionsPreview, setTransactionsPreview] = useState<
     Array<
-      Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+      Pick<Transaction, "amount" | "payee" | "notes"> & {
+        date: DateString;
         isDuplicate: boolean;
       }
     >
@@ -177,7 +179,7 @@ function ImportTransactions({
     if (!dateKey || !amountKey || !payeeKey) return;
 
     const transactions = parseResult.rows.map((row) => {
-      const date = parseUTCDate(row[dateKey]);
+      const date = DateString.fromString(row[dateKey]);
       const amount = (
         isInvertAmount
           ? currency(row[amountKey]).multiply(-1)
@@ -188,7 +190,7 @@ function ImportTransactions({
 
       const isDuplicate = existingTransactions?.some(
         (transaction) =>
-          transaction.date.getTime() === date.getTime() &&
+          transaction.date.equals(date) &&
           transaction.amount === amount &&
           transaction.payee === payee &&
           transaction.notes === notes
@@ -288,14 +290,16 @@ function ImportTransactions({
 
 interface ImportTransactionsPreviewProps {
   transactions: Array<
-    Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+    Pick<Transaction, "amount" | "payee" | "notes"> & {
+      date: DateString;
       isDuplicate: boolean;
     }
   >;
   setTransactions: React.Dispatch<
     React.SetStateAction<
       Array<
-        Pick<Transaction, "date" | "amount" | "payee" | "notes"> & {
+        Pick<Transaction, "amount" | "payee" | "notes"> & {
+          date: DateString;
           isDuplicate: boolean;
         }
       >
@@ -334,7 +338,7 @@ function ImportTransactionsPreview({
                   }
                 />
               </TableCell>
-              <TableCell>{transaction.date.toLocaleDateString()}</TableCell>
+              <TableCell>{transaction.date.toMDYString()}</TableCell>
               <TableCell>{formatCurrency(transaction.amount)}</TableCell>
               <TableCell>{transaction.payee}</TableCell>
               <TableCell>{transaction.notes}</TableCell>

@@ -14,7 +14,7 @@ import {
 import { useDB } from "@/hooks/db";
 import { Account } from "@/lib/db/schema/accounts";
 import { getHistoricalNetWorth } from "@/lib/services/accounts/get-net-worth";
-import { formatCurrency, formatDateString } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
@@ -60,17 +60,11 @@ export function NetWorthChart({ accountId }: NetWorthChartProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={formatDateString}
             />
             <YAxis dataKey="netWorthInCents" tickFormatter={formatCurrency} />
             <ChartTooltip
               cursor={false}
-              content={
-                <ChartTooltipContent
-                  formatter={formatCurrency}
-                  labelFormatter={formatDateString}
-                />
-              }
+              content={<ChartTooltipContent formatter={formatCurrency} />}
             />
             <Area
               dataKey="netWorthInCents"

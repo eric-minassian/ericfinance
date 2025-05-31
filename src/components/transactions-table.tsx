@@ -1,9 +1,9 @@
 import { useDB } from "@/hooks/db";
-import { useInfiniteTransactions } from "@/hooks/use-infinite-transactions";
 import { Account } from "@/lib/db/schema/accounts";
 import { listCategories } from "@/lib/services/categories/list-categories";
+import { listTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-by-date";
 import { updateTransaction } from "@/lib/services/transactions/update-transaction";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Icon from "./icon";
 import { Button } from "./ui/button";
@@ -24,13 +24,10 @@ interface TransactionsTableProps {
 
 export function TransactionsTable({ accountId }: TransactionsTableProps) {
   const { db } = useDB();
-  const {
-    groupedTransactions,
-    isFetching,
-    hasNextPage,
-    initialLoadAttempted,
-    ref,
-  } = useInfiniteTransactions({ accountId, db });
+  const { data: groupedTransactions } = useQuery({
+    queryKey: ["listTransactionsByDate", accountId],
+    queryFn: async () => listTransactionsGroupedByDate({ db: db!, accountId }),
+  });
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => listCategories({ db: db! }),
@@ -50,11 +47,11 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
       <ScrollArea className="h-[55vh] w-full">
         <CardContent>
           <Table>
-            {groupedTransactions.map((group, idx) => (
+            {groupedTransactions?.map((group, idx) => (
               <TableBody key={`${group.date.toISOString()}-${idx}`}>
                 <TableRow className="bg-muted text-xs">
                   <TableHead colSpan={2} className="text-muted-foreground h-8">
-                    {formatDate(group.date)}
+                    {group.date.toMDYString()}
                   </TableHead>
                   <TableHead className="text-muted-foreground text-right h-8">
                     {formatCurrency(group.total)}
@@ -100,18 +97,6 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
               </TableBody>
             ))}
           </Table>
-          {isFetching && (
-            <div className="flex justify-center py-4">Loading...</div>
-          )}
-          {!isFetching &&
-            !hasNextPage &&
-            groupedTransactions.length === 0 &&
-            initialLoadAttempted && (
-              <div className="flex justify-center py-4 text-muted-foreground">
-                No transactions found.
-              </div>
-            )}
-          {hasNextPage && <div ref={ref} style={{ height: "1px" }} />}
         </CardContent>
         <ScrollBar orientation="vertical" />
       </ScrollArea>

@@ -1,6 +1,8 @@
 import { queryClient } from "@/context/query";
+import { TransactionsDao } from "@/lib/dao/transactions";
+import { DateString } from "@/lib/date";
 import { importsTable } from "@/lib/db/schema/imports";
-import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
+import { Transaction } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { applyRules } from "../rules/apply-rules";
 
@@ -8,7 +10,7 @@ interface CreateTransactionsRequest {
   db: Database;
   accountId: string;
   transactions: Array<{
-    date: Transaction["date"];
+    date: DateString;
     amount: Transaction["amount"];
     payee: Transaction["payee"];
     notes: Transaction["notes"];
@@ -33,18 +35,17 @@ export async function createTransactions({
       .values({})
       .returning({ id: importsTable.id });
 
-    const insertedTransactions = await tx
-      .insert(transactionsTable)
-      .values(
-        transactions.map((transaction) => ({
-          ...transaction,
-          accountId,
-          importId: importRecord.id,
-        }))
-      )
-      .returning({ id: transactionsTable.id });
+    const transactionsInput = transactions.map((transaction) => ({
+      ...transaction,
+      accountId,
+      importId: importRecord.id,
+    }));
 
-    return insertedTransactions.map((t) => t.id);
+    const insertedTransactions = await TransactionsDao.insertTransactions(tx, {
+      transactions: transactionsInput,
+    });
+
+    return insertedTransactions?.map((t) => t.id);
   });
 
   if (newTransactionIds.length > 0) {
