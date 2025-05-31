@@ -22,7 +22,7 @@ export const transactionsTable = sqliteTable("transactions", {
   }),
 
   amount: int("amount").notNull(),
-  date: int("date", { mode: "timestamp" }).notNull(),
+  date: text("date").notNull(),
   payee: text("payee").notNull(),
   notes: text("notes"),
   rawData: text("raw_data", { mode: "json" }),

@@ -1,29 +1,29 @@
+import { TransactionsDao } from "@/lib/dao/transactions";
+import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
-import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
+import { Transaction } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
-import { eq } from "drizzle-orm";
 
 interface ListTransactionsRequest {
   db: Database;
   accountId?: Account["id"];
+  transactionIds?: Transaction["id"][];
 }
 
 type ListTransactionsResponse = Array<
-  Pick<Transaction, "id" | "date" | "amount" | "payee" | "notes">
+  Pick<
+    Transaction,
+    "id" | "amount" | "payee" | "notes" | "categoryId" | "rawData"
+  > & { date: DateString }
 >;
 
 export async function listTransactions({
   db,
   accountId,
+  transactionIds,
 }: ListTransactionsRequest): Promise<ListTransactionsResponse> {
-  return await db
-    .select({
-      id: transactionsTable.id,
-      date: transactionsTable.date,
-      amount: transactionsTable.amount,
-      payee: transactionsTable.payee,
-      notes: transactionsTable.notes,
-    })
-    .from(transactionsTable)
-    .where(accountId ? eq(transactionsTable.accountId, accountId) : undefined);
+  return await TransactionsDao.listTransactions(db, {
+    accountId,
+    transactionIds,
+  });
 }

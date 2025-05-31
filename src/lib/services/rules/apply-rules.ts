@@ -1,8 +1,10 @@
+import { TransactionsDao } from "@/lib/dao/transactions";
+import { DateString } from "@/lib/date";
 import { RuleStatement } from "@/lib/db/schema/rule-statements";
 import { Rule } from "@/lib/db/schema/rules";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
-import { eq, inArray } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { listRules } from "./list-rules";
 
 interface ApplyRulesRequest {
@@ -14,8 +16,10 @@ type ApplyRulesResponse = void;
 
 type TransactionWithRawData = Pick<
   Transaction,
-  "id" | "amount" | "date" | "payee" | "notes" | "rawData" | "categoryId"
->;
+  "id" | "amount" | "payee" | "notes" | "rawData" | "categoryId"
+> & {
+  date: DateString;
+};
 
 type RuleWithStatements = Rule & {
   statements: RuleStatement[];
@@ -108,22 +112,9 @@ export async function applyRules({
     return;
   }
 
-  const query = db
-    .select({
-      id: transactionsTable.id,
-      amount: transactionsTable.amount,
-      date: transactionsTable.date,
-      payee: transactionsTable.payee,
-      notes: transactionsTable.notes,
-      rawData: transactionsTable.rawData,
-      categoryId: transactionsTable.categoryId,
-    })
-    .from(transactionsTable);
-
-  const transactions =
-    transactionIds && transactionIds.length > 0
-      ? await query.where(inArray(transactionsTable.id, transactionIds))
-      : await query;
+  const transactions = await TransactionsDao.listTransactions(db, {
+    transactionIds,
+  });
 
   for (const transaction of transactions) {
     for (const rule of rules) {
