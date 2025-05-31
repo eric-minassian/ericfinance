@@ -3,16 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDB } from "@/hooks/db";
 import { deleteCategory } from "@/lib/services/categories/delete-category";
-import { listCategories } from "@/lib/services/categories/list-categories";
-import { useQuery } from "@tanstack/react-query";
+import { useListCategories } from "@/lib/services/categories/list-categories";
 import { CreateCategoryButton } from "./create-category-button";
 
 export function ListCategories() {
   const { db } = useDB();
-  const { data } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => listCategories({ db: db! }),
-  });
+  const { data } = useListCategories();
 
   return (
     <Card>

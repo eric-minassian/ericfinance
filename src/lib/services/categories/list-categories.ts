@@ -1,19 +1,16 @@
-import { categoriesTable, Category } from "@/lib/db/schema/categories";
-import { Database } from "@/lib/types";
+import { useDB } from "@/hooks/db";
+import { listCategories } from "@/lib/dao/categories/list-categories";
+import { useQuery } from "@tanstack/react-query";
 
-interface ListCategoriesRequest {
-  db: Database;
-}
+export function useListCategories() {
+  const { db } = useDB();
 
-type ListCategoriesResponse = Array<Category>;
+  if (!db) {
+    throw new Error("Database is not initialized");
+  }
 
-export async function listCategories({
-  db,
-}: ListCategoriesRequest): Promise<ListCategoriesResponse> {
-  const categories = await db
-    .select()
-    .from(categoriesTable)
-    .orderBy(categoriesTable.name);
-
-  return categories;
+  return useQuery({
+    queryKey: ["listCategories"],
+    queryFn: () => listCategories(db),
+  });
 }

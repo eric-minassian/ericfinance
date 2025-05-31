@@ -18,9 +18,8 @@ import {
 } from "@/components/ui/select";
 import { useDB } from "@/hooks/db";
 import { useAppForm } from "@/hooks/form";
-import { listCategories } from "@/lib/services/categories/list-categories";
+import { useListCategories } from "@/lib/services/categories/list-categories";
 import { createRule } from "@/lib/services/rules/create-rule";
-import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -93,10 +92,7 @@ const OPERATORS = [
 function CreateRuleDialog({ setOpen }: CreateRuleDialogProps) {
   const { db } = useDB();
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => listCategories({ db: db! }),
-  });
+  const { data: categories = [] } = useListCategories();
 
   const form = useAppForm({
     validators: { onSubmit: createRuleFormValidator },
