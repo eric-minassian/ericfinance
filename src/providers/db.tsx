@@ -122,46 +122,54 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
       throw new Error("No pending file to decrypt");
     }
 
-    const reader = new FileReader();
-    reader.onload = async function () {
-      if (!reader.result) {
-        throw new Error("Failed to read file");
-      }
+    return new Promise<void>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async function () {
+        try {
+          if (!reader.result) {
+            throw new Error("Failed to read file");
+          }
 
-      const arrayBuffer = reader.result as ArrayBuffer;
-      const uint8Array = new Uint8Array(arrayBuffer);
+          const arrayBuffer = reader.result as ArrayBuffer;
+          const uint8Array = new Uint8Array(arrayBuffer);
 
-      try {
-        let dbData: Uint8Array;
+          let dbData: Uint8Array;
 
-        if (isEncryptedDatabase(uint8Array)) {
-          // Decrypt the database
-          dbData = await decryptDatabase(uint8Array, enteredPassword);
-          setPassword(enteredPassword); // Store password for future exports
-        } else {
-          dbData = uint8Array;
-          setPassword(null); // No password for unencrypted databases
+          if (isEncryptedDatabase(uint8Array)) {
+            // Decrypt the database
+            dbData = await decryptDatabase(uint8Array, enteredPassword);
+            setPassword(enteredPassword); // Store password for future exports
+          } else {
+            dbData = uint8Array;
+            setPassword(null); // No password for unencrypted databases
+          }
+
+          const sqlDb = new sql.Database(dbData);
+          const db = drizzle(sqlDb, { schema: schema });
+
+          await migrate(db, { journal, migrations });
+
+          setDB(db);
+          setSqlDb(sqlDb);
+          setPendingFile(null);
+          console.log("Database initialized successfully");
+          toast.success("Database loaded successfully");
+          resolve();
+        } catch (error) {
+          console.error("Error initializing database:", error);
+          // Don't clear pendingFile on error, so user can retry
+          setDB(null);
+          setSqlDb(null);
+          reject(error);
         }
+      };
 
-        const sqlDb = new sql.Database(dbData);
-        const db = drizzle(sqlDb, { schema: schema });
+      reader.onerror = () => {
+        reject(new Error("Failed to read file"));
+      };
 
-        await migrate(db, { journal, migrations });
-
-        setDB(db);
-        setSqlDb(sqlDb);
-        setPendingFile(null);
-        console.log("Database initialized successfully");
-        toast.success("Database loaded successfully");
-      } catch (error) {
-        console.error("Error initializing database:", error);
-        setPendingFile(null);
-        setDB(null);
-        setSqlDb(null);
-        throw error;
-      }
-    };
-    reader.readAsArrayBuffer(pendingFile);
+      reader.readAsArrayBuffer(pendingFile);
+    });
   };
 
   // Handle new encrypted database creation
@@ -295,7 +303,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         onClose={() => {
           setIsPasswordDialogOpen(false);
           setPasswordDialogType(null);
-          setPendingFile(null);
+          setPendingFile(null); // Clear pending file when user explicitly closes dialog
         }}
         onSubmit={
           passwordDialogType === "create"

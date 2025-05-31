@@ -10,16 +10,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAppForm } from "@/hooks/form";
 import { useCallback } from "react";
-import { toast } from "sonner";
 import { z } from "zod";
 
 const passwordFormValidator = z
   .object({
     password: z.string().min(1, "Password is required"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    confirmPassword: z.string(),
   })
   .superRefine(({ confirmPassword, password }, ctx) => {
-    if (confirmPassword !== password) {
+    if (confirmPassword && confirmPassword !== password) {
       ctx.addIssue({
         code: "custom",
         message: "Passwords do not match",
@@ -51,15 +50,21 @@ export function PasswordDialog({
       password: "",
       confirmPassword: "",
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value, formApi }) => {
       try {
         await onSubmit(value.password);
         handleCancel();
       } catch (error) {
         console.error(error);
-        toast.error(
-          "Failed to submit password. Check the console for more details."
-        );
+        formApi.setErrorMap({
+          onSubmit: {
+            fields: {
+              password: {
+                message: "Incorrect password",
+              },
+            },
+          },
+        });
       }
     },
   });
@@ -91,7 +96,7 @@ export function PasswordDialog({
               name="password"
               children={(field) => (
                 <field.FormFieldItem>
-                  <field.FormFieldLabel>Name</field.FormFieldLabel>
+                  <field.FormFieldLabel>Password</field.FormFieldLabel>
                   <field.FormFieldControl>
                     <Input
                       placeholder="Enter your password"
