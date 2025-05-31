@@ -1,4 +1,4 @@
-import { TransactionsDao } from "@/lib/dao/transactions";
+import { listTransactionsByDate } from "@/lib/dao/transactions/list-transactions-by-date";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { Database } from "@/lib/types";
@@ -17,12 +17,9 @@ export async function getHistoricalNetWorth({
   db,
   accountId,
 }: GetHistoricalNetWorthRequest): Promise<GetHistoricalNetWorthResponse> {
-  const transactionsTotalByDate = await TransactionsDao.listTransactionsByDate(
-    db,
-    {
-      accountId,
-    }
-  );
+  const transactionsTotalByDate = await listTransactionsByDate(db, {
+    accountId,
+  });
 
   let cumulativeValueInCents = 0;
 
