@@ -1,4 +1,5 @@
 import { useDB } from "@/hooks/db";
+import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { useListCategories } from "@/lib/services/categories/list-categories";
 import { useInfiniteListTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-by-date";
@@ -7,8 +8,10 @@ import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
 import Icon from "./icon";
+import { TransactionsTableFilterButton } from "./transactions-table-filter-button";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardHeader } from "./ui/card";
+import { Header } from "./ui/header";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
 import {
   Select,
@@ -17,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { SpaceBetween } from "./ui/space-between";
 import { Table, TableBody, TableCell, TableHead, TableRow } from "./ui/table";
 
 const PAGE_SIZE = 20;
@@ -28,6 +32,9 @@ interface TransactionsTableProps {
 export function TransactionsTable({ accountId }: TransactionsTableProps) {
   const { ref, inView } = useInView();
   const [page, setPage] = useState(0);
+  const [startDate, setStartDate] = useState<DateString | undefined>();
+  const [endDate, setEndDate] = useState<DateString | undefined>();
+  const [categoryId, setCategoryId] = useState<string | undefined>();
 
   const { data: categories } = useListCategories();
 
@@ -42,6 +49,9 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
     accountId,
     includeTransactions: true,
     pageSize: PAGE_SIZE,
+    startDate,
+    endDate,
+    categoryId,
   });
 
   useEffect(() => {
@@ -54,13 +64,26 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>Transactions</CardTitle>
-          <Button>
-            <Icon variant="plus" />
-            Add transaction
-          </Button>
-        </div>
+        <Header
+          actions={
+            <SpaceBetween>
+              <Button>
+                <Icon variant="plus" />
+                Add transaction
+              </Button>
+              <TransactionsTableFilterButton
+                startDate={startDate}
+                setStartDate={setStartDate}
+                endDate={endDate}
+                setEndDate={setEndDate}
+                categoryId={categoryId}
+                setCategoryId={setCategoryId}
+              />
+            </SpaceBetween>
+          }
+        >
+          Transactions
+        </Header>
       </CardHeader>
       <ScrollArea className="h-[55vh] w-full">
         <CardContent>
