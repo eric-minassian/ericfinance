@@ -2,7 +2,7 @@ import { DateString } from "@/lib/date";
 import { Category } from "@/lib/db/schema/categories";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
-import { and, asc, eq, gte, lte, sql, sum } from "drizzle-orm";
+import { and, asc, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 
 type Options = {
   accountId?: string;
@@ -11,6 +11,7 @@ type Options = {
   categoryId?: Category["id"];
   page?: number;
   pageSize?: number;
+  order?: "asc" | "desc";
   includeTransactions?: boolean;
 };
 
@@ -34,6 +35,7 @@ export async function listTransactionsByDate<T extends boolean | undefined>(
     categoryId,
     page,
     pageSize,
+    order = "asc",
     includeTransactions,
   }: Options
 ): Promise<Return<T>> {
@@ -69,7 +71,11 @@ export async function listTransactionsByDate<T extends boolean | undefined>(
       )
     )
     .groupBy(transactionsTable.date)
-    .orderBy(asc(transactionsTable.date));
+    .orderBy(
+      order === "asc"
+        ? asc(transactionsTable.date)
+        : desc(transactionsTable.date)
+    );
 
   if (pageSize) query.limit(pageSize);
   if (page && pageSize) query.offset((page - 1) * pageSize);
