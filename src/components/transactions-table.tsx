@@ -2,6 +2,7 @@ import { useDB } from "@/hooks/db";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { useListCategories } from "@/lib/services/categories/list-categories";
+import { useTotalFilteredTransactions } from "@/lib/services/transactions/get-total-filtered-transactions";
 import { useInfiniteListTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-by-date";
 import { updateTransaction } from "@/lib/services/transactions/update-transaction";
 import { formatCurrency } from "@/lib/utils";
@@ -54,6 +55,16 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
     categoryId,
   });
 
+  const hasFilters = Boolean(startDate || endDate || categoryId);
+
+  const { data: filteredTotal } = useTotalFilteredTransactions({
+    accountId,
+    startDate,
+    endDate,
+    categoryId,
+    enabled: hasFilters,
+  });
+
   useEffect(() => {
     if (inView) {
       fetchNextPage();
@@ -80,6 +91,11 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
                 setCategoryId={setCategoryId}
               />
             </SpaceBetween>
+          }
+          description={
+            hasFilters && filteredTotal !== undefined
+              ? `Total: ${formatCurrency(filteredTotal)}`
+              : "View and manage your transactions"
           }
         >
           Transactions
