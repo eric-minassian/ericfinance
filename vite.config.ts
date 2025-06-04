@@ -20,6 +20,13 @@ export default defineConfig({
     },
   },
 
+  server: {
+    headers: {
+      // Disable CSP for development to avoid Google APIs conflicts
+      "Content-Security-Policy": "",
+    },
+  },
+
   build: {
     rollupOptions: {
       output: {
