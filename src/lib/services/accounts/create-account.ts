@@ -1,25 +1,27 @@
+import { queryClient } from "@/context/query";
+import { useDB } from "@/hooks/db";
 import { Account, accountsTable } from "@/lib/db/schema/accounts";
-import { Database } from "@/lib/types";
+import { useMutation } from "@tanstack/react-query";
 
-interface CreateAccountRequest {
-  db: Database;
-  name: Account["name"];
-}
+type CreateAccountParams = Pick<Account, "name" | "variant">;
 
-interface CreateAccountResponse {
-  id: Account["id"];
-}
+export function useCreateAccount() {
+  const { db } = useDB();
+  if (!db) {
+    throw new Error("Database connection is not available");
+  }
 
-export async function createAccount({
-  db,
-  name,
-}: CreateAccountRequest): Promise<CreateAccountResponse> {
-  const [createdAccount] = await db
-    .insert(accountsTable)
-    .values({
-      name,
-    })
-    .returning({ id: accountsTable.id });
+  return useMutation({
+    mutationFn: async (params: CreateAccountParams) => {
+      const [createdAccount] = await db
+        .insert(accountsTable)
+        .values(params)
+        .returning({ id: accountsTable.id });
 
-  return createdAccount;
+      return createdAccount;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listAccounts"] });
+    },
+  });
 }
