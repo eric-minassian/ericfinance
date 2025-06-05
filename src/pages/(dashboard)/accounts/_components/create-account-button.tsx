@@ -1,11 +1,14 @@
 import Icon from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useState } from "react";
 import { CreateAccountDialog } from "./create-account-dialog";
 
 export function CreateAccountButton() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <Icon variant="plus" />
@@ -13,7 +16,7 @@ export function CreateAccountButton() {
         </Button>
       </DialogTrigger>
 
-      <CreateAccountDialog />
+      <CreateAccountDialog onOpenChange={setOpen} />
     </Dialog>
   );
 }
