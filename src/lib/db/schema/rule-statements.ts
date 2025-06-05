@@ -2,6 +2,7 @@ import { createId } from "@paralleldrive/cuid2";
 import { type InferSelectModel } from "drizzle-orm";
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { rulesTable } from "./rules";
+import { lifecycleDates } from "./utils";
 
 export const ruleStatementsTable = sqliteTable("rule_statements", {
   id: text("id")
@@ -28,6 +29,7 @@ export const ruleStatementsTable = sqliteTable("rule_statements", {
     ],
   }).notNull(),
   value: text("value").notNull(),
+  ...lifecycleDates,
 });
 
 export type RuleStatement = InferSelectModel<typeof ruleStatementsTable>;

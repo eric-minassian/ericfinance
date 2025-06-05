@@ -1,9 +1,9 @@
 import { createId } from "@paralleldrive/cuid2";
 import { type InferSelectModel } from "drizzle-orm";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { z } from "zod";
 import { accountsTable } from "./accounts";
 import { importsTable } from "./imports";
+import { lifecycleDates } from "./utils";
 
 export const securitiesTable = sqliteTable("securities", {
   id: text("id")
@@ -17,19 +17,11 @@ export const securitiesTable = sqliteTable("securities", {
     onDelete: "cascade",
   }),
 
-  date: int("date", { mode: "timestamp" }).notNull(),
+  date: text("date").notNull(),
   ticker: text("ticker").notNull(),
   amount: int("amount").notNull(),
   rawData: text("raw_data", { mode: "json" }),
+  ...lifecycleDates,
 });
 
-export const securitiesSchema = z.object({
-  id: z.string().cuid2(),
-  accountId: z.string().cuid2(),
-  importId: z.string().cuid2().optional(),
-  date: z.date(),
-  ticker: z.string().min(1, { message: "Ticker is required" }),
-  amount: z.number().int(),
-  rawData: z.string().optional(),
-});
 export type Security = InferSelectModel<typeof securitiesTable>;

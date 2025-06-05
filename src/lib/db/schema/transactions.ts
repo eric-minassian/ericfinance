@@ -5,6 +5,7 @@ import { z } from "zod";
 import { accountsTable } from "./accounts";
 import { categoriesTable } from "./categories";
 import { importsTable } from "./imports";
+import { lifecycleDates } from "./utils";
 
 export const transactionsTable = sqliteTable("transactions", {
   id: text("id")
@@ -26,6 +27,7 @@ export const transactionsTable = sqliteTable("transactions", {
   payee: text("payee").notNull(),
   notes: text("notes"),
   rawData: text("raw_data", { mode: "json" }),
+  ...lifecycleDates,
 });
 
 export const transactionSchema = z.object({

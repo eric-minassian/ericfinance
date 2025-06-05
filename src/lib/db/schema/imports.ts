@@ -1,16 +1,15 @@
 import { createId } from "@paralleldrive/cuid2";
-import { sql, type InferSelectModel } from "drizzle-orm";
-import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { type InferSelectModel } from "drizzle-orm";
+import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { z } from "zod";
+import { lifecycleDates } from "./utils";
 
 export const importsTable = sqliteTable("imports", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => createId()),
 
-  createdAt: int("created_at", { mode: "timestamp" })
-    .default(sql`(unixepoch())`)
-    .notNull(),
+  ...lifecycleDates,
 });
 
 export const importSchema = z.object({

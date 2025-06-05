@@ -1,38 +1,16 @@
-import { Account, accountsTable } from "@/lib/db/schema/accounts";
-import { transactionsTable } from "@/lib/db/schema/transactions";
-import { Database } from "@/lib/types";
-import { asc, eq, sum } from "drizzle-orm";
+import { useDB } from "@/hooks/db";
+import { listAccounts } from "@/lib/dao/accounts/list-accounts";
+import { useQuery } from "@tanstack/react-query";
 
-interface ListAccountsRequest {
-  db: Database;
-}
+export function useListAccounts() {
+  const { db } = useDB();
 
-type ListAccountsResponse = Array<
-  Pick<Account, "id" | "name"> & {
-    balance: number;
+  if (!db) {
+    throw new Error("Database is not initialized");
   }
->;
 
-export async function listAccounts({
-  db,
-}: ListAccountsRequest): Promise<ListAccountsResponse> {
-  const accounts = await db
-    .select({
-      id: accountsTable.id,
-      name: accountsTable.name,
-      balance: sum(transactionsTable.amount),
-    })
-    .from(accountsTable)
-    .leftJoin(
-      transactionsTable,
-      eq(transactionsTable.accountId, accountsTable.id)
-    )
-    .orderBy(asc(accountsTable.name))
-    .groupBy(accountsTable.id);
-
-  return accounts.map((account) => ({
-    id: account.id,
-    name: account.name,
-    balance: account.balance ? Number(account.balance) : 0,
-  }));
+  return useQuery({
+    queryKey: ["listAccounts"],
+    queryFn: () => listAccounts(db),
+  });
 }
