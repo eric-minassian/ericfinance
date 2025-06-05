@@ -7,18 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useDB } from "@/hooks/db";
-import { listAccounts } from "@/lib/services/accounts/list-accounts";
-import { cn, formatCurrency } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useListAccounts } from "@/lib/services/accounts/list-accounts";
 import { Link } from "wouter";
+import { AccountBalance } from "./account-balance";
 
 export function AccountsList() {
-  const { db } = useDB();
-  const { data } = useQuery({
-    queryKey: ["listAccounts"],
-    queryFn: async () => listAccounts({ db: db! }),
-  });
+  const listAccountsQuery = useListAccounts();
 
   return (
     <Card>
@@ -29,7 +23,7 @@ export function AccountsList() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {data?.map((account, index) => (
+        {listAccountsQuery?.data?.map((account, index) => (
           <div key={index}>
             <Separator />
             <Link href={`/accounts/${account.id}`}>
@@ -40,18 +34,14 @@ export function AccountsList() {
                 <div className="flex flex-col flex-1">
                   <span className="font-medium">{account.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    Bank Account
+                    {account.variant}
                   </span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span
-                    className={cn(
-                      "font-semibold",
-                      account.balance < 0 && "text-destructive"
-                    )}
-                  >
-                    {formatCurrency(account.balance)}
-                  </span>
+                  <AccountBalance
+                    accountId={account.id}
+                    accountVariant={account.variant}
+                  />
                   <span className="text-xs text-muted-foreground">
                     2 hours ago
                   </span>
