@@ -9,8 +9,10 @@ import { applyRules } from "./apply-rules";
 
 interface CreateRuleRequest {
   db: Database;
-  rule: Omit<Rule, "id"> & {
-    statements: Array<Omit<RuleStatement, "id" | "ruleId">>;
+  rule: Omit<Rule, "id" | "createdAt" | "updatedAt"> & {
+    statements: Array<
+      Omit<RuleStatement, "id" | "ruleId" | "createdAt" | "updatedAt">
+    >;
   };
 }
 

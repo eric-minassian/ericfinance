@@ -1,7 +1,4 @@
 import { TransactionsDao } from "@/lib/dao/transactions";
-import { DateString } from "@/lib/date";
-import { RuleStatement } from "@/lib/db/schema/rule-statements";
-import { Rule } from "@/lib/db/schema/rules";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { eq } from "drizzle-orm";
@@ -14,19 +11,10 @@ interface ApplyRulesRequest {
 
 type ApplyRulesResponse = void;
 
-type TransactionWithRawData = Pick<
-  Transaction,
-  "id" | "amount" | "payee" | "notes" | "rawData" | "categoryId"
-> & {
-  date: DateString;
-};
-
-type RuleWithStatements = Rule & {
-  statements: RuleStatement[];
-};
-
 function getFieldValue(
-  transaction: TransactionWithRawData,
+  transaction: Awaited<
+    ReturnType<typeof TransactionsDao.listTransactions>
+  >[number],
   field: string
 ): string | null {
   // Check if field exists as a direct column on the transaction
@@ -55,8 +43,10 @@ function getFieldValue(
 }
 
 function evaluateStatement(
-  transaction: TransactionWithRawData,
-  statement: RuleStatement
+  transaction: Awaited<
+    ReturnType<typeof TransactionsDao.listTransactions>
+  >[number],
+  statement: Awaited<ReturnType<typeof listRules>>[number]["statements"][number]
 ): boolean {
   const fieldValue = getFieldValue(transaction, statement.field);
 
@@ -94,8 +84,10 @@ function evaluateStatement(
 }
 
 function evaluateRule(
-  transaction: TransactionWithRawData,
-  rule: RuleWithStatements
+  transaction: Awaited<
+    ReturnType<typeof TransactionsDao.listTransactions>
+  >[number],
+  rule: Awaited<ReturnType<typeof listRules>>[number]
 ): boolean {
   return rule.statements.every((statement) =>
     evaluateStatement(transaction, statement)

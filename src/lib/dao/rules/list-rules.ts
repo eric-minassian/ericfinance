@@ -6,21 +6,11 @@ import { Rule, rulesTable } from "@/lib/db/schema/rules";
 import { Database } from "@/lib/types";
 import { eq, sql } from "drizzle-orm";
 
-interface ListRulesRequest {
-  db: Database;
-}
+type Return = (Pick<Rule, "id" | "updateField" | "updateValue"> & {
+  statements: Pick<RuleStatement, "id" | "field" | "operator" | "value">[];
+})[];
 
-type ListRulesResponse = Array<
-  Pick<Rule, "id" | "updateField" | "updateValue"> & {
-    statements: Array<
-      Pick<RuleStatement, "id" | "field" | "operator" | "value" | "ruleId">
-    >;
-  }
->;
-
-export async function listRules({
-  db,
-}: ListRulesRequest): Promise<ListRulesResponse> {
+export async function listRules(db: Database): Promise<Return> {
   const results = await db
     .select({
       id: rulesTable.id,
