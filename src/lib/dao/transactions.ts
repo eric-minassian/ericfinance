@@ -30,7 +30,6 @@ export class TransactionsDao {
         date: transactionsTable.date,
         amount: transactionsTable.amount,
         payee: transactionsTable.payee,
-        notes: transactionsTable.notes,
         categoryId: transactionsTable.categoryId,
         rawData: transactionsTable.rawData,
       })

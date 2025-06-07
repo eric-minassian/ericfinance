@@ -137,12 +137,11 @@ function ImportTransactions({
   const [dateKey, setDateKey] = useState<string | null>(null);
   const [amountKey, setAmountKey] = useState<string | null>(null);
   const [payeeKey, setPayeeKey] = useState<string | null>(null);
-  const [notesKey, setNotesKey] = useState<string | null>(null);
   const [isInvertAmount, setIsInvertAmount] = useState(false);
 
   const [transactionsPreview, setTransactionsPreview] = useState<
     Array<
-      Pick<Transaction, "amount" | "payee" | "notes"> & {
+      Pick<Transaction, "amount" | "payee"> & {
         date: DateString;
         isDuplicate: boolean;
       }
@@ -153,7 +152,6 @@ function ImportTransactions({
     { label: "Date", value: dateKey, setKey: setDateKey },
     { label: "Amount", value: amountKey, setKey: setAmountKey },
     { label: "Payee", value: payeeKey, setKey: setPayeeKey },
-    { label: "Notes", value: notesKey, setKey: setNotesKey },
   ];
 
   useEffect(() => {
@@ -161,7 +159,6 @@ function ImportTransactions({
       [/(date|when|time)/i, setDateKey],
       [/(amount|sum|price|total)/i, setAmountKey],
       [/(payee|recipient|vendor|merchant|description)/i, setPayeeKey],
-      [/(notes|memo|details|comment)/i, setNotesKey],
     ]);
 
     parseResult.headers.forEach((header) => {
@@ -186,21 +183,18 @@ function ImportTransactions({
           : currency(row[amountKey])
       ).intValue;
       const payee = row[payeeKey];
-      const notes = notesKey !== null ? row[notesKey].trim() : null;
 
       const isDuplicate = existingTransactions?.some(
         (transaction) =>
           transaction.date.equals(date) &&
           transaction.amount === amount &&
-          transaction.payee === payee &&
-          transaction.notes === notes
+          transaction.payee === payee
       );
 
       return {
         date,
         amount,
         payee,
-        notes,
         isDuplicate: !!isDuplicate,
         rawData: row,
       };
@@ -212,7 +206,6 @@ function ImportTransactions({
     dateKey,
     amountKey,
     payeeKey,
-    notesKey,
     isInvertAmount,
     existingTransactions,
   ]);
@@ -233,7 +226,6 @@ function ImportTransactions({
     setDateKey(null);
     setAmountKey(null);
     setPayeeKey(null);
-    setNotesKey(null);
     setIsInvertAmount(false);
     setDialogOpen(false);
   }
@@ -290,7 +282,7 @@ function ImportTransactions({
 
 interface ImportTransactionsPreviewProps {
   transactions: Array<
-    Pick<Transaction, "amount" | "payee" | "notes"> & {
+    Pick<Transaction, "amount" | "payee"> & {
       date: DateString;
       isDuplicate: boolean;
     }
@@ -298,7 +290,7 @@ interface ImportTransactionsPreviewProps {
   setTransactions: React.Dispatch<
     React.SetStateAction<
       Array<
-        Pick<Transaction, "amount" | "payee" | "notes"> & {
+        Pick<Transaction, "amount" | "payee"> & {
           date: DateString;
           isDuplicate: boolean;
         }
@@ -320,7 +312,6 @@ function ImportTransactionsPreview({
             <TableHead>Date</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Payee</TableHead>
-            <TableHead>Notes</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -341,7 +332,6 @@ function ImportTransactionsPreview({
               <TableCell>{transaction.date.toMDYString()}</TableCell>
               <TableCell>{formatCurrency(transaction.amount)}</TableCell>
               <TableCell>{transaction.payee}</TableCell>
-              <TableCell>{transaction.notes}</TableCell>
             </TableRow>
           ))}
         </TableBody>

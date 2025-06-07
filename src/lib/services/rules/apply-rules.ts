@@ -25,8 +25,6 @@ function getFieldValue(
       return transaction.date?.toISOString() || null;
     case "payee":
       return transaction.payee || null;
-    case "notes":
-      return transaction.notes || null;
     case "categoryid":
       return transaction.categoryId || null;
     default:
@@ -117,8 +115,6 @@ export async function applyRules({
           updateData.categoryId = rule.updateValue;
         } else if (rule.updateField === "payee") {
           updateData.payee = rule.updateValue;
-        } else if (rule.updateField === "notes") {
-          updateData.notes = rule.updateValue;
         }
 
         if (Object.keys(updateData).length > 0) {
