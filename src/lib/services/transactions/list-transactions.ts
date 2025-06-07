@@ -11,10 +11,9 @@ interface ListTransactionsRequest {
 }
 
 type ListTransactionsResponse = Array<
-  Pick<
-    Transaction,
-    "id" | "amount" | "payee" | "notes" | "categoryId" | "rawData"
-  > & { date: DateString }
+  Pick<Transaction, "id" | "amount" | "payee" | "categoryId" | "rawData"> & {
+    date: DateString;
+  }
 >;
 
 export async function listTransactions({

@@ -13,7 +13,6 @@ interface CreateTransactionsRequest {
     date: DateString;
     amount: Transaction["amount"];
     payee: Transaction["payee"];
-    notes: Transaction["notes"];
     rawData?: Transaction["rawData"];
   }>;
 }

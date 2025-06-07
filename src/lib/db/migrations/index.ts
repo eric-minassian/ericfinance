@@ -7,6 +7,7 @@ import Migration2 from "./0002_harsh_puff_adder.sql?raw";
 import Migration3 from "./0003_messy_franklin_richards.sql?raw";
 import Migration4 from "./0004_aberrant_hobgoblin.sql?raw";
 import Migration5 from "./0005_mature_rachel_grey.sql?raw";
+import Migration6 from "./0006_youthful_lady_vermin.sql?raw";
 
 export const journal: MigrationJournal = _journal;
 
@@ -17,4 +18,5 @@ export const migrations: Record<string, string> = {
   "0003_messy_franklin_richards": Migration3,
   "0004_aberrant_hobgoblin": Migration4,
   "0005_mature_rachel_grey": Migration5,
+  "0006_youthful_lady_vermin": Migration6,
 };
