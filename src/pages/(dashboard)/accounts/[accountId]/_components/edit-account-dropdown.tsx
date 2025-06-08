@@ -1,4 +1,5 @@
 import Icon from "@/components/icon";
+import { ImportDialog } from "@/components/import-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -14,17 +15,19 @@ import { deleteAccount } from "@/lib/services/accounts/delete-accoun";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
-import { ImportTransactionsDialog } from "./import-transactions-dialog";
 
 interface EditAccountDropdownProps {
   accountId: Account["id"];
+  accountVariant: Account["variant"];
 }
 
-export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
+export function EditAccountDropdown({
+  accountId,
+  accountVariant,
+}: EditAccountDropdownProps) {
   const { db } = useDB();
   const [, navigate] = useLocation();
-  const [importTransactionsDialogOpen, setImportTransactionsDialogOpen] =
-    useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   async function handleDeleteAccount() {
     if (confirm("Are you sure you want to delete this account?")) {
@@ -35,10 +38,7 @@ export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
   }
 
   return (
-    <Dialog
-      open={importTransactionsDialogOpen}
-      onOpenChange={setImportTransactionsDialogOpen}
-    >
+    <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline">
@@ -49,7 +49,7 @@ export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
         <DropdownMenuContent>
           <DropdownMenuItem>Edit account</DropdownMenuItem>
           <DialogTrigger asChild>
-            <DropdownMenuItem>Upload transactions</DropdownMenuItem>
+            <DropdownMenuItem>Upload {accountVariant}</DropdownMenuItem>
           </DialogTrigger>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={handleDeleteAccount}>
@@ -58,9 +58,10 @@ export function EditAccountDropdown({ accountId }: EditAccountDropdownProps) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ImportTransactionsDialog
+      <ImportDialog
         accountId={accountId}
-        setDialogOpen={setImportTransactionsDialogOpen}
+        accountVariant={accountVariant}
+        setDialogOpen={setImportDialogOpen}
       />
     </Dialog>
   );

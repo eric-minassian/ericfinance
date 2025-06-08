@@ -24,29 +24,32 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useDB } from "@/hooks/db";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
+import { Security } from "@/lib/db/schema/securities";
 import { Transaction } from "@/lib/db/schema/transactions";
 import { ParseResult } from "@/lib/parser";
 import { parseCSV } from "@/lib/parser/csv";
-import { createTransactions } from "@/lib/services/transactions/create-transactions";
-import { listTransactions } from "@/lib/services/transactions/list-transactions";
+import { useCreateSecurities } from "@/lib/services/securities/create-securities";
+import { useListSecurities } from "@/lib/services/securities/list-securities";
+import { useCreateTransactions } from "@/lib/services/transactions/create-transactions";
+import { useListTransactions } from "@/lib/services/transactions/list-transactions";
 import { formatCurrency } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
 import currency from "currency.js";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-interface ImportTransactionsDialogProps {
+interface ImportDialogProps {
   accountId: Account["id"];
+  accountVariant: Account["variant"];
   setDialogOpen: (open: boolean) => void;
 }
 
-export function ImportTransactionsDialog({
+export function ImportDialog({
   accountId,
+  accountVariant,
   setDialogOpen,
-}: ImportTransactionsDialogProps) {
+}: ImportDialogProps) {
   const [data, setData] = useState<ParseResult | null>(null);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -81,12 +84,21 @@ export function ImportTransactionsDialog({
         </DialogDescription>
       </DialogHeader>
       {data ? (
-        <ImportTransactions
-          parseResult={data}
-          accountId={accountId}
-          setData={setData}
-          setDialogOpen={setDialogOpen}
-        />
+        accountVariant === "transactions" ? (
+          <ImportTransactions
+            parseResult={data}
+            accountId={accountId}
+            setData={setData}
+            setDialogOpen={setDialogOpen}
+          />
+        ) : (
+          <ImportSecurities
+            parseResult={data}
+            accountId={accountId}
+            setData={setData}
+            setDialogOpen={setDialogOpen}
+          />
+        )
       ) : (
         <>
           <input
@@ -128,11 +140,8 @@ function ImportTransactions({
   setData,
   setDialogOpen,
 }: ImportTransactionsProps) {
-  const { db } = useDB();
-  const { data: existingTransactions } = useQuery({
-    queryKey: ["listTransactions", accountId],
-    queryFn: () => listTransactions({ db: db!, accountId }),
-  });
+  const { data: existingTransactions } = useListTransactions({ accountId });
+  const createTransactionsMutation = useCreateTransactions();
 
   const [dateKey, setDateKey] = useState<string | null>(null);
   const [amountKey, setAmountKey] = useState<string | null>(null);
@@ -211,13 +220,14 @@ function ImportTransactions({
   ]);
 
   async function handleImport() {
-    await createTransactions({
-      db: db!,
-      accountId,
-      transactions: transactionsPreview.filter(
-        (transaction) => !transaction.isDuplicate
-      ),
-    });
+    await createTransactionsMutation.mutateAsync(
+      transactionsPreview
+        .filter((transaction) => !transaction.isDuplicate)
+        .map((transaction) => ({
+          ...transaction,
+          accountId,
+        }))
+    );
 
     toast.success("Transactions imported successfully");
 
@@ -268,9 +278,10 @@ function ImportTransactions({
         </div>
       </div>
 
-      <ImportTransactionsPreview
-        transactions={transactionsPreview}
-        setTransactions={setTransactionsPreview}
+      <ImportPreview
+        type="transactions"
+        data={transactionsPreview}
+        setData={setTransactionsPreview}
       />
 
       <DialogFooter>
@@ -280,29 +291,166 @@ function ImportTransactions({
   );
 }
 
-interface ImportTransactionsPreviewProps {
-  transactions: Array<
-    Pick<Transaction, "amount" | "payee"> & {
-      date: DateString;
-      isDuplicate: boolean;
-    }
-  >;
-  setTransactions: React.Dispatch<
-    React.SetStateAction<
-      Array<
-        Pick<Transaction, "amount" | "payee"> & {
-          date: DateString;
-          isDuplicate: boolean;
-        }
-      >
+interface ImportSecuritiesProps {
+  parseResult: ParseResult;
+  accountId: Account["id"];
+  setData: React.Dispatch<React.SetStateAction<ParseResult | null>>;
+  setDialogOpen: (open: boolean) => void;
+}
+
+function ImportSecurities({
+  parseResult,
+  accountId,
+  setData,
+  setDialogOpen,
+}: ImportSecuritiesProps) {
+  const { data: existingSecurities } = useListSecurities({ accountId });
+  const createSecuritiesMutation = useCreateSecurities();
+
+  const [dateKey, setDateKey] = useState<string | null>(null);
+  const [amountKey, setAmountKey] = useState<string | null>(null);
+  const [tickerKey, setTickerKey] = useState<string | null>(null);
+
+  const [securitiesPreview, setSecuritiesPreview] = useState<
+    Array<
+      Pick<Security, "amount" | "ticker"> & {
+        date: DateString;
+        isDuplicate: boolean;
+      }
     >
+  >([]);
+
+  const columns = [
+    { label: "Date", value: dateKey, setKey: setDateKey },
+    { label: "Shares", value: amountKey, setKey: setAmountKey },
+    { label: "Ticker", value: tickerKey, setKey: setTickerKey },
+  ];
+
+  useEffect(() => {
+    const headerMap = new Map([
+      [/(date|when|time)/i, setDateKey],
+      [/(amount|shares|quantity)/i, setAmountKey],
+      [/(ticker|symbol|stock)/i, setTickerKey],
+    ]);
+
+    parseResult.headers.forEach((header) => {
+      for (const [pattern, setter] of headerMap) {
+        if (pattern.test(header)) {
+          setter(header);
+          break;
+        }
+      }
+    });
+  }, [parseResult]);
+
+  useEffect(() => {
+    if (!parseResult.rows.length) return;
+    if (!dateKey || !amountKey || !tickerKey) return;
+
+    const securities = parseResult.rows.map((row) => {
+      const date = DateString.fromString(row[dateKey]);
+      const amount = parseFloat(row[amountKey]);
+      const ticker = row[tickerKey];
+
+      const isDuplicate = existingSecurities?.some(
+        (security) =>
+          security.date.equals(date) &&
+          security.amount === amount &&
+          security.ticker === ticker
+      );
+
+      return {
+        date,
+        amount,
+        ticker,
+        isDuplicate: !!isDuplicate,
+        rawData: row,
+      };
+    });
+
+    setSecuritiesPreview(securities);
+  }, [parseResult, dateKey, amountKey, tickerKey, existingSecurities]);
+
+  async function handleImport() {
+    await createSecuritiesMutation.mutateAsync(
+      securitiesPreview
+        .filter((security) => !security.isDuplicate)
+        .map((security) => ({
+          ...security,
+          accountId,
+        }))
+    );
+
+    toast.success("Securities imported successfully");
+
+    setData(null);
+    setSecuritiesPreview([]);
+    setDateKey(null);
+    setAmountKey(null);
+    setTickerKey(null);
+    setDialogOpen(false);
+  }
+
+  return (
+    <>
+      <div className="flex gap-4">
+        {columns.map((column, i) => (
+          <div key={i} className="space-y-1">
+            <Label htmlFor={column.label}>{column.label}</Label>
+            <Select
+              value={column.value ?? "none"}
+              onValueChange={(value) =>
+                column.setKey(value === "none" ? null : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Select column</SelectItem>
+                {parseResult.headers.map((header) => (
+                  <SelectItem key={header} value={header}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ))}
+      </div>
+
+      <ImportPreview
+        type="securities"
+        data={securitiesPreview}
+        setData={setSecuritiesPreview}
+      />
+
+      <DialogFooter>
+        <Button onClick={handleImport}>Import</Button>
+      </DialogFooter>
+    </>
+  );
+}
+
+interface ImportPreviewProps<
+  T extends { date: DateString; amount: number } & (
+    | Pick<Transaction, "payee">
+    | Pick<Security, "ticker">
+  )
+> {
+  type: "transactions" | "securities";
+  data: Array<T & { isDuplicate: boolean }>;
+  setData: React.Dispatch<
+    React.SetStateAction<Array<T & { isDuplicate: boolean }>>
   >;
 }
 
-function ImportTransactionsPreview({
-  transactions,
-  setTransactions,
-}: ImportTransactionsPreviewProps) {
+function ImportPreview<
+  T extends { date: DateString; amount: number } & (
+    | Pick<Transaction, "payee">
+    | Pick<Security, "ticker">
+  )
+>({ type, data, setData }: ImportPreviewProps<T>) {
   return (
     <div className="max-h-[60vh] overflow-auto">
       <Table>
@@ -310,18 +458,27 @@ function ImportTransactionsPreview({
           <TableRow>
             <TableHead>Duplicate</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Payee</TableHead>
+            {type === "transactions" ? (
+              <>
+                <TableHead>Amount</TableHead>
+                <TableHead>Payee</TableHead>
+              </>
+            ) : (
+              <>
+                <TableHead>Shares</TableHead>
+                <TableHead>Ticker</TableHead>
+              </>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {transactions.map((transaction, rowIdx) => (
+          {data.map((item, rowIdx) => (
             <TableRow key={rowIdx}>
               <TableCell>
                 <Checkbox
-                  checked={transaction.isDuplicate}
+                  checked={item.isDuplicate}
                   onCheckedChange={() =>
-                    setTransactions((prev) =>
+                    setData((prev) =>
                       prev.map((r, i) =>
                         i === rowIdx ? { ...r, isDuplicate: !r.isDuplicate } : r
                       )
@@ -329,9 +486,17 @@ function ImportTransactionsPreview({
                   }
                 />
               </TableCell>
-              <TableCell>{transaction.date.toMDYString()}</TableCell>
-              <TableCell>{formatCurrency(transaction.amount)}</TableCell>
-              <TableCell>{transaction.payee}</TableCell>
+              <TableCell>{item.date.toMDYString()}</TableCell>
+              <TableCell>
+                {type === "transactions"
+                  ? formatCurrency(item.amount)
+                  : item.amount.toFixed(4)}
+              </TableCell>
+              <TableCell>
+                {type === "transactions"
+                  ? (item as Pick<Transaction, "payee">).payee
+                  : (item as Pick<Security, "ticker">).ticker}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
