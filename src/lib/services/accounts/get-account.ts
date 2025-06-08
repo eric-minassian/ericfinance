@@ -7,7 +7,7 @@ interface GetAccountRequest {
   accountId: Account["id"];
 }
 
-type GetAccountResponse = Pick<Account, "id" | "name">;
+type GetAccountResponse = Pick<Account, "id" | "name" | "variant">;
 
 export async function getAccount({
   db,
@@ -17,6 +17,7 @@ export async function getAccount({
     .select({
       id: accountsTable.id,
       name: accountsTable.name,
+      variant: accountsTable.variant,
     })
     .from(accountsTable)
     .where(eq(accountsTable.id, accountId))
@@ -25,5 +26,6 @@ export async function getAccount({
   return {
     id: account.id,
     name: account.name,
+    variant: account.variant,
   };
 }

@@ -1,9 +1,9 @@
 import { createId } from "@paralleldrive/cuid2";
-import { type InferSelectModel } from "drizzle-orm";
+import { InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import { int, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { accountsTable } from "./accounts";
 import { importsTable } from "./imports";
-import { lifecycleDates } from "./utils";
+import { dateString, lifecycleDates } from "./utils";
 
 export const securitiesTable = sqliteTable("securities", {
   id: text("id")
@@ -17,7 +17,7 @@ export const securitiesTable = sqliteTable("securities", {
     onDelete: "cascade",
   }),
 
-  date: text("date").notNull(),
+  date: dateString("date").notNull(),
   ticker: text("ticker").notNull(),
   amount: int("amount").notNull(),
   rawData: text("raw_data", { mode: "json" }),
@@ -25,3 +25,4 @@ export const securitiesTable = sqliteTable("securities", {
 });
 
 export type Security = InferSelectModel<typeof securitiesTable>;
+export type InsertSecurity = InferInsertModel<typeof securitiesTable>;

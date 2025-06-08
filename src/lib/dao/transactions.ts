@@ -24,7 +24,7 @@ export class TransactionsDao {
       transactionIds,
     }: { accountId?: string; transactionIds?: Transaction["id"][] }
   ) {
-    const result = await db
+    return await db
       .select({
         id: transactionsTable.id,
         date: transactionsTable.date,
@@ -43,11 +43,6 @@ export class TransactionsDao {
         )
       )
       .orderBy(asc(transactionsTable.date));
-
-    return result.map((row) => ({
-      ...row,
-      date: DateString.fromString(row.date),
-    }));
   }
 
   static async insertTransactions(
@@ -67,16 +62,8 @@ export class TransactionsDao {
       return [];
     }
 
-    const validTransactions = transactions.map((transaction) => ({
-      ...transaction,
-      date: transaction.date.toISOString(),
-    }));
-
-    return await db
-      .insert(transactionsTable)
-      .values(validTransactions)
-      .returning({
-        id: transactionsTable.id,
-      });
+    return await db.insert(transactionsTable).values(transactions).returning({
+      id: transactionsTable.id,
+    });
   }
 }

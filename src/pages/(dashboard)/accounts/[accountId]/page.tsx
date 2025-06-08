@@ -23,7 +23,14 @@ export default function AccountPage({ params }: AccountPageProps) {
   return (
     <ContentLayout
       header={
-        <Header actions={<EditAccountDropdown accountId={params.accountId} />}>
+        <Header
+          actions={
+            <EditAccountDropdown
+              accountId={params.accountId}
+              accountVariant={data?.variant ?? "transactions"}
+            />
+          }
+        >
           Account {data?.name}
         </Header>
       }

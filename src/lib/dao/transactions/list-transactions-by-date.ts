@@ -61,12 +61,8 @@ export async function listTransactionsByDate<T extends boolean | undefined>(
     .where(
       and(
         accountId ? eq(transactionsTable.accountId, accountId) : undefined,
-        startDate
-          ? gte(transactionsTable.date, startDate.toISOString())
-          : undefined,
-        endDate
-          ? lte(transactionsTable.date, endDate.toISOString())
-          : undefined,
+        startDate ? gte(transactionsTable.date, startDate) : undefined,
+        endDate ? lte(transactionsTable.date, endDate) : undefined,
         categoryId ? eq(transactionsTable.categoryId, categoryId) : undefined
       )
     )

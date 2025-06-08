@@ -1,28 +1,31 @@
-import { TransactionsDao } from "@/lib/dao/transactions";
-import { DateString } from "@/lib/date";
+import { useDB } from "@/hooks/db";
 import { Account } from "@/lib/db/schema/accounts";
-import { Transaction } from "@/lib/db/schema/transactions";
-import { Database } from "@/lib/types";
+import { transactionsTable } from "@/lib/db/schema/transactions";
+import { useQuery } from "@tanstack/react-query";
+import { eq } from "drizzle-orm";
 
-interface ListTransactionsRequest {
-  db: Database;
+interface UseListTransactionsProps {
   accountId?: Account["id"];
-  transactionIds?: Transaction["id"][];
 }
 
-type ListTransactionsResponse = Array<
-  Pick<Transaction, "id" | "amount" | "payee" | "categoryId" | "rawData"> & {
-    date: DateString;
-  }
->;
+export function useListTransactions({ accountId }: UseListTransactionsProps) {
+  const { db } = useDB();
+  if (!db) throw new Error("Database is not initialized");
 
-export async function listTransactions({
-  db,
-  accountId,
-  transactionIds,
-}: ListTransactionsRequest): Promise<ListTransactionsResponse> {
-  return await TransactionsDao.listTransactions(db, {
-    accountId,
-    transactionIds,
+  return useQuery({
+    queryKey: ["listTransactions", accountId],
+    queryFn: async () => {
+      return await db
+        .select({
+          id: transactionsTable.id,
+          amount: transactionsTable.amount,
+          date: transactionsTable.date,
+          payee: transactionsTable.payee,
+        })
+        .from(transactionsTable)
+        .where(
+          accountId ? eq(transactionsTable.accountId, accountId) : undefined
+        );
+    },
   });
 }
