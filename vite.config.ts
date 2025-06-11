@@ -41,6 +41,12 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["test/**/*.test.tsx", "test/**/*.test.ts"],
+    include: ["tests/**/*.test.tsx", "tests/**/*.test.ts"],
+    browser: {
+      enabled: true,
+      headless: true,
+      provider: "playwright",
+      instances: [{ browser: "chromium" }],
+    },
   },
 });
