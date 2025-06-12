@@ -33,6 +33,7 @@
     "@tailwindcss/vite": "^4.1.8",
     "@tanstack/react-form": "^1.12.2",
     "@tanstack/react-query": "^5.80.6",
+    "@tanstack/react-router": "^1.121.2",
     "@tanstack/react-table": "^8.21.3",
     "alphavantage": "^2.5.0",
     "class-variance-authority": "^0.7.1",
@@ -53,12 +54,12 @@
     "sql.js": "^1.13.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.8",
-    "wouter": "^3.7.1",
     "zod": "^3.25.58"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
     "@playwright/test": "^1.53.0",
+    "@tanstack/router-plugin": "^1.121.4",
     "@types/node": "^24.0.0",
     "@types/papaparse": "^5.3.16",
     "@types/react": "^19.1.7",

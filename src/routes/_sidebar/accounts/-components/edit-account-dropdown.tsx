@@ -12,9 +12,9 @@ import {
 import { useDB } from "@/hooks/db";
 import { Account } from "@/lib/db/schema/accounts";
 import { deleteAccount } from "@/lib/services/accounts/delete-accoun";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
 
 interface EditAccountDropdownProps {
   accountId: Account["id"];
@@ -26,14 +26,14 @@ export function EditAccountDropdown({
   accountVariant,
 }: EditAccountDropdownProps) {
   const { db } = useDB();
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   async function handleDeleteAccount() {
     if (confirm("Are you sure you want to delete this account?")) {
       await deleteAccount({ db: db!, accountId });
       toast.success("Account deleted successfully");
-      navigate("/dashboard/accounts");
+      navigate({ to: "/accounts" });
     }
   }
 
