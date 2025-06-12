@@ -78,7 +78,7 @@ export async function listTransactionsByDate<T extends boolean | undefined>(
   const result = await query;
 
   return result.map((row) => ({
-    date: DateString.fromString(row.date),
+    date: row.date,
     total: row.total ? Number(row.total) : 0,
     transactions: row.transactions ? JSON.parse(row.transactions) : undefined,
   })) as Return<T>;

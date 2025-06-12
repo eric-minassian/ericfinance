@@ -4,7 +4,7 @@ import { Header } from "@/components/ui/header";
 import { useDB } from "@/hooks/db";
 import { getAccount } from "@/lib/services/accounts/get-account";
 import { useQuery } from "@tanstack/react-query";
-import { NetWorthChart } from "../_components/net-worth-chart";
+import { NetWorthChart } from "../../../../components/net-worth-chart";
 import { EditAccountDropdown } from "./_components/edit-account-dropdown";
 
 interface AccountPageProps {
