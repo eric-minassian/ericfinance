@@ -1,10 +1,16 @@
+import { createFileRoute } from "@tanstack/react-router"
 import { ContentLayout } from "@/components/ui/content-layout";
 import { Header } from "@/components/ui/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ListCategories } from "./_components/list-categories";
-import { ListRules } from "./_components/list-rules";
-import { SecuritySettings } from "./_components/security-settings";
-export default function SettingsPage() {
+import { ListCategories } from "./-components/list-categories";
+import { ListRules } from "./-components/list-rules";
+import { SecuritySettings } from "./-components/security-settings";
+
+export const Route = createFileRoute("/_sidebar/settings/")({
+  component: RouteComponent,
+});
+
+function RouteComponent() {
   return (
     <ContentLayout
       header={<Header description="Configure your settings">Settings</Header>}

@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useDB } from "@/hooks/db";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from "@tanstack/react-router";
 import Icon from "./icon";
 
 const data = {
@@ -32,13 +32,13 @@ const data = {
     },
     {
       title: "Transactions",
-      url: "/transactions",
+      url: "/",
       icon: <Icon variant="card" />,
     },
 
     {
       title: "Imports",
-      url: "/imports",
+      url: "/",
       icon: <Icon variant="import" />,
     },
     {
@@ -47,10 +47,10 @@ const data = {
       icon: <Icon variant="settings" />,
     },
   ],
-};
+} as const;
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [location] = useLocation();
+  const { pathname } = useLocation();
   const { exportDB } = useDB();
 
   const handleExportDB = () => {
@@ -66,7 +66,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="group-data-[collapsible=icon]:hidden"
               asChild
             >
-              <Link href="/">
+              <Link to="/">
                 <Icon variant="logo" />
                 EricFinance
               </Link>
@@ -82,11 +82,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navMain.map((item) => {
-                const isActive = location === item.url;
+                const isActive = pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton isActive={isActive} asChild>
-                      <Link href={item.url}>
+                      <Link to={item.url}>
                         {item.icon && item.icon}
                         {item.title}
                       </Link>

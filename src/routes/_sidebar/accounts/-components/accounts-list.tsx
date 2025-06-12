@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useListAccounts } from "@/lib/services/accounts/list-accounts";
-import { Link } from "wouter";
+import { Link } from "@tanstack/react-router";
 import { AccountBalance } from "./account-balance";
 
 export function AccountsList() {
@@ -26,7 +26,12 @@ export function AccountsList() {
         {listAccountsQuery?.data?.map((account, index) => (
           <div key={index}>
             <Separator />
-            <Link href={`/accounts/${account.id}`}>
+            <Link
+              to="/accounts/$accountId"
+              params={{
+                accountId: account.id,
+              }}
+            >
               <div className="hover:bg-accent flex items-center py-4 px-2 rounded-md">
                 <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center mr-3">
                   <Icon variant="bank" size="lg" />
