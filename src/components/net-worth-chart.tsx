@@ -1,25 +1,19 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useDB } from "@/hooks/db";
+import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
-import { getHistoricalNetWorth } from "@/lib/services/accounts/get-net-worth";
+import { useListNetWorth } from "@/lib/services/accounts/get-net-worth";
 import { formatCurrency } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Header } from "./ui/header";
 
 const chartConfig = {
-  netWorthInCents: {
+  newtWorth: {
     label: "Net Worth",
     color: "var(--chart-1)",
   },
@@ -30,19 +24,14 @@ interface NetWorthChartProps {
 }
 
 export function NetWorthChart({ accountId }: NetWorthChartProps) {
-  const { db } = useDB();
-  const { data } = useQuery({
-    queryKey: ["getHistoricalNetWorth", accountId],
-    queryFn: () => getHistoricalNetWorth({ db: db!, accountId }),
-  });
+  const { data } = useListNetWorth({ accountId });
 
   return (
     <Card>
       <CardHeader>
-        <CardDescription className="text-xs">NET WORTH</CardDescription>
-        <CardTitle className="text-2xl">
-          {formatCurrency(data?.[data.length - 1]?.netWorthInCents || 0)}
-        </CardTitle>
+        <Header description="Net Worth">
+          {formatCurrency(data?.[data.length - 1]?.newtWorth || 0)}
+        </Header>
       </CardHeader>
       <CardContent>
         <ChartContainer
@@ -51,7 +40,7 @@ export function NetWorthChart({ accountId }: NetWorthChartProps) {
         >
           <AreaChart
             accessibilityLayer
-            data={data}
+            data={data?.map((d) => ({ ...d, date: d.date.toISOString() }))}
             margin={{ top: 24, left: 12, right: 12 }}
           >
             <CartesianGrid vertical={false} />
@@ -60,17 +49,21 @@ export function NetWorthChart({ accountId }: NetWorthChartProps) {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
+              interval="preserveEnd"
+              tickFormatter={(value) =>
+                DateString.fromString(value).toMDYString()
+              }
             />
-            <YAxis dataKey="netWorthInCents" tickFormatter={formatCurrency} />
+            <YAxis dataKey="newtWorth" tickFormatter={formatCurrency} />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent formatter={formatCurrency} />}
             />
             <Area
-              dataKey="netWorthInCents"
-              fill="var(--color-netWorthInCents)"
+              dataKey="newtWorth"
+              fill="var(--color-newtWorth)"
               fillOpacity={0.4}
-              stroke="var(--color-netWorthInCents)"
+              stroke="var(--color-newtWorth)"
             />
           </AreaChart>
         </ChartContainer>

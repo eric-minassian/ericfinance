@@ -1,36 +1,37 @@
+import { useDB } from "@/hooks/db";
 import { listTransactionsByDate } from "@/lib/dao/transactions/list-transactions-by-date";
-import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
-import { Database } from "@/lib/types";
+import { useQuery } from "@tanstack/react-query";
 
-interface GetHistoricalNetWorthRequest {
-  db: Database;
+interface UseListNetWorthProps {
   accountId?: Account["id"];
 }
 
-type GetHistoricalNetWorthResponse = Array<{
-  netWorthInCents: number;
-  date: DateString;
-}>;
+export function useListNetWorth({ accountId }: UseListNetWorthProps) {
+  const { db } = useDB();
+  if (!db) throw new Error("Database is not initialized");
 
-export async function getHistoricalNetWorth({
-  db,
-  accountId,
-}: GetHistoricalNetWorthRequest): Promise<GetHistoricalNetWorthResponse> {
-  const transactionsTotalByDate = await listTransactionsByDate(db, {
-    accountId,
+  return useQuery({
+    queryKey: ["listNetWorth", accountId],
+    queryFn: async () => {
+      const transactionsTotalByDate = await listTransactionsByDate(db, {
+        accountId,
+      });
+
+      let cumulativeValueInCents = 0;
+
+      const historicalValues = transactionsTotalByDate.map(
+        (transactionsTotal) => {
+          cumulativeValueInCents += transactionsTotal.total;
+
+          return {
+            date: transactionsTotal.date,
+            newtWorth: cumulativeValueInCents,
+          };
+        }
+      );
+
+      return historicalValues;
+    },
   });
-
-  let cumulativeValueInCents = 0;
-
-  const historicalValues = transactionsTotalByDate.map((transactionsTotal) => {
-    cumulativeValueInCents += transactionsTotal.total;
-
-    return {
-      date: transactionsTotal.date,
-      netWorthInCents: cumulativeValueInCents,
-    };
-  });
-
-  return historicalValues;
 }
