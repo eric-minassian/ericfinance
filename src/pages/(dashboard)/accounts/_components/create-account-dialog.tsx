@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/select";
 import { useAppForm } from "@/hooks/form";
 import { useCreateAccount } from "@/lib/services/accounts/create-account";
+import { useNavigate } from "@tanstack/react-router";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
 import { z } from "zod";
 
 const createAccountFormValidator = z.object({
@@ -35,7 +35,7 @@ interface CreateAccountDialogProps {
 export function CreateAccountDialog({
   onOpenChange,
 }: CreateAccountDialogProps) {
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const createAccountMutation = useCreateAccount();
 
   const form = useAppForm({
@@ -55,7 +55,11 @@ export function CreateAccountDialog({
         toast.success("Account created successfully", {
           action: {
             label: "View Account",
-            onClick: () => navigate(`/accounts/${id}`),
+            onClick: () =>
+              navigate({
+                to: "/accounts/$accountId",
+                params: { accountId: id },
+              }),
           },
         });
       } catch (error) {
