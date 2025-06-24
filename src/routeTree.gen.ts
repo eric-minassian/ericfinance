@@ -49,7 +49,6 @@ const SidebarAccountsAccountIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '': typeof SidebarRouteWithChildren
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/accounts': typeof SidebarAccountsIndexRoute
@@ -57,7 +56,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '': typeof SidebarRouteWithChildren
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/accounts': typeof SidebarAccountsIndexRoute
@@ -76,19 +74,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | ''
     | '/dashboard'
     | '/accounts/$accountId'
     | '/accounts'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | ''
-    | '/dashboard'
-    | '/accounts/$accountId'
-    | '/accounts'
-    | '/settings'
+  to: '/' | '/dashboard' | '/accounts/$accountId' | '/accounts' | '/settings'
   id:
     | '__root__'
     | '/'
