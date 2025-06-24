@@ -1,8 +1,8 @@
 import { TransactionsDao } from "@/lib/dao/transactions";
+import { listRules } from "@/lib/dao/rules/list-rules";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { eq } from "drizzle-orm";
-import { listRules } from "./list-rules";
 
 interface ApplyRulesRequest {
   db: Database;
@@ -96,7 +96,7 @@ export async function applyRules({
   db,
   transactionIds,
 }: ApplyRulesRequest): Promise<ApplyRulesResponse> {
-  const rules = await listRules({ db });
+  const rules = await listRules(db);
 
   if (rules.length === 0) {
     return;

@@ -9,9 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDB } from "@/hooks/db";
 import { Account } from "@/lib/db/schema/accounts";
-import { deleteAccount } from "@/lib/services/accounts/delete-accoun";
+import { useDeleteAccount } from "@/lib/services/accounts/use-delete-account";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -25,13 +24,13 @@ export function EditAccountDropdown({
   accountId,
   accountVariant,
 }: EditAccountDropdownProps) {
-  const { db } = useDB();
   const navigate = useNavigate();
+  const deleteAccountMutation = useDeleteAccount();
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   async function handleDeleteAccount() {
     if (confirm("Are you sure you want to delete this account?")) {
-      await deleteAccount({ db: db!, accountId });
+      await deleteAccountMutation.mutateAsync(accountId);
       toast.success("Account deleted successfully");
       navigate({ to: "/accounts" });
     }

@@ -1,10 +1,9 @@
-import { useDB } from "@/hooks/db";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { useListCategories } from "@/lib/services/categories/list-categories";
 import { useTotalFilteredTransactions } from "@/lib/services/transactions/get-total-filtered-transactions";
 import { useInfiniteListTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-by-date";
-import { updateTransaction } from "@/lib/services/transactions/update-transaction";
+import { useUpdateTransaction } from "@/lib/services/transactions/use-update-transaction";
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -38,8 +37,8 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
   const [categoryId, setCategoryId] = useState<string | undefined>();
 
   const { data: categories } = useListCategories();
+  const updateTransactionMutation = useUpdateTransaction();
 
-  const { db } = useDB();
   const {
     data: groupedTransactions,
     fetchNextPage,
@@ -128,12 +127,10 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
                           defaultValue={
                             transaction.categoryId ?? "uncategorized"
                           }
-                          onValueChange={async (value) => {
-                            if (!db) return;
+                          onValueChange={(value) => {
                             const categoryId =
                               value === "uncategorized" ? null : value;
-                            await updateTransaction({
-                              db,
+                            updateTransactionMutation.mutate({
                               transactionId: transaction.id,
                               categoryId,
                             });

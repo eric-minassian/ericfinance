@@ -2,18 +2,13 @@ import Icon from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDB } from "@/hooks/db";
-import { deleteRule } from "@/lib/services/rules/delete-rule";
-import { listRules } from "@/lib/services/rules/list-rules";
-import { useQuery } from "@tanstack/react-query";
+import { useDeleteRule } from "@/lib/services/rules/use-delete-rule";
+import { useListRules } from "@/lib/services/rules/use-list-rules";
 import { CreateRuleButton } from "./create-rule-button";
 
 export function ListRules() {
-  const { db } = useDB();
-  const { data } = useQuery({
-    queryKey: ["rules"],
-    queryFn: async () => listRules({ db: db! }),
-  });
+  const { data } = useListRules();
+  const deleteRuleMutation = useDeleteRule();
 
   return (
     <Card>
@@ -64,11 +59,8 @@ export function ListRules() {
                     <Button
                       variant="destructive"
                       size="icon"
-                      onClick={async () => {
-                        await deleteRule({
-                          db: db!,
-                          id: rule.id,
-                        });
+                      onClick={() => {
+                        deleteRuleMutation.mutate(rule.id);
                       }}
                     >
                       <Icon variant="trash" />
