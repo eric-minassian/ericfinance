@@ -165,7 +165,7 @@ export function NetWorthChart({ accountId }: NetWorthChartProps) {
             />
             <ChartTooltip
               cursor={false}
-              content={({ active, payload, label }) => {
+              content={({ active, payload, label, ...props }) => {
                 if (!active || !payload?.length) return null;
 
                 const item = chartData[Number(label)];
@@ -179,6 +179,7 @@ export function NetWorthChart({ accountId }: NetWorthChartProps) {
                     active={active}
                     payload={payload}
                     label={date}
+                    {...props}
                   />
                 );
               }}
