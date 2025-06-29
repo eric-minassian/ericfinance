@@ -3,27 +3,26 @@ import { useDB } from "@/hooks/db";
 import { Account, accountsTable } from "@/lib/db/schema/accounts";
 import { Database } from "@/lib/types";
 import { useMutation } from "@tanstack/react-query";
+import { eq } from "drizzle-orm";
 
-type CreateAccountParams = Pick<Account, "name" | "variant">;
-
-export async function createAccount(db: Database, params: CreateAccountParams) {
-  const [createdAccount] = await db
-    .insert(accountsTable)
-    .values(params)
-    .returning({ id: accountsTable.id });
-
-  return createdAccount;
+interface DeleteAccountParams {
+  accountId: Account["id"];
 }
 
-export function useCreateAccount() {
+export async function deleteAccount(db: Database, params: DeleteAccountParams) {
+  await db.delete(accountsTable).where(eq(accountsTable.id, params.accountId));
+  return;
+}
+
+export function useDeleteAccount() {
   const { db } = useDB();
   if (!db) {
     throw new Error("Database connection is not available");
   }
 
   return useMutation({
-    mutationFn: async (params: CreateAccountParams) =>
-      createAccount(db, params),
+    mutationFn: async (params: DeleteAccountParams) =>
+      deleteAccount(db, params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listAccounts"] });
     },
