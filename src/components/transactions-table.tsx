@@ -8,9 +8,8 @@ import { useUpdateTransaction } from "@/lib/services/transactions/update-transac
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import Icon from "./icon";
+import { CreateTransactionButton } from "./create-transaction-dialog";
 import { TransactionsTableFilterButton } from "./transactions-table-filter-button";
-import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Header } from "./ui/header";
 import { ScrollArea, ScrollBar } from "./ui/scroll-area";
@@ -79,10 +78,7 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
         <Header
           actions={
             <SpaceBetween>
-              <Button>
-                <Icon variant="plus" />
-                Add transaction
-              </Button>
+              {accountId && <CreateTransactionButton accountId={accountId} />}
               <TransactionsTableFilterButton
                 startDate={startDate}
                 setStartDate={setStartDate}
