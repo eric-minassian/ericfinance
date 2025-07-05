@@ -1,4 +1,4 @@
-import { expect, test } from "./helpers/fixtures";
+import { expect, test } from "../fixtures";
 
 test.describe("Database", () => {
   const databasePassword = "testpassword";
