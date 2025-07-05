@@ -1,4 +1,4 @@
-import { expect, test } from "./helpers/fixtures";
+import { expect, test } from "../fixtures";
 
 test.describe("Accounts", () => {
   const accountName = "Eric's Account";
