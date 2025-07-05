@@ -24,13 +24,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  test: {
-    include: ["tests/**/*.test.tsx", "tests/**/*.test.ts"],
-    browser: {
-      enabled: true,
-      headless: true,
-      provider: "playwright",
-      instances: [{ browser: "chromium" }],
-    },
-  },
 });
