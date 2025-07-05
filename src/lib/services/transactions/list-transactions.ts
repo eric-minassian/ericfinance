@@ -1,11 +1,22 @@
 import { useDB } from "@/hooks/db";
+import {
+  listTransactions,
+  ListTransactionsParams,
+  ListTransactionsResult,
+} from "@/lib/dao/transactions/list-transactions";
 import { Account } from "@/lib/db/schema/accounts";
-import { transactionsTable } from "@/lib/db/schema/transactions";
+import { Database } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { eq } from "drizzle-orm";
 
 interface UseListTransactionsProps {
   accountId?: Account["id"];
+}
+
+export async function listTransactionsService(
+  db: Database,
+  params: ListTransactionsParams
+): Promise<ListTransactionsResult[]> {
+  return listTransactions(db, params);
 }
 
 export function useListTransactions({ accountId }: UseListTransactionsProps) {
@@ -14,18 +25,6 @@ export function useListTransactions({ accountId }: UseListTransactionsProps) {
 
   return useQuery({
     queryKey: ["listTransactions", accountId],
-    queryFn: async () => {
-      return await db
-        .select({
-          id: transactionsTable.id,
-          amount: transactionsTable.amount,
-          date: transactionsTable.date,
-          payee: transactionsTable.payee,
-        })
-        .from(transactionsTable)
-        .where(
-          accountId ? eq(transactionsTable.accountId, accountId) : undefined
-        );
-    },
+    queryFn: async () => listTransactionsService(db, { accountId }),
   });
 }

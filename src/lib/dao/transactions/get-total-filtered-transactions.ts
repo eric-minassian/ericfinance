@@ -4,16 +4,21 @@ import { transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { and, eq, gte, lte, sum } from "drizzle-orm";
 
-type Options = {
+export interface GetTotalFilteredTransactionsParams {
   accountId?: string;
   startDate?: DateString;
   endDate?: DateString;
   categoryId?: Category["id"];
-};
+}
 
 export async function getTotalFilteredTransactions(
   db: Database,
-  { accountId, startDate, endDate, categoryId }: Options
+  {
+    accountId,
+    startDate,
+    endDate,
+    categoryId,
+  }: GetTotalFilteredTransactionsParams
 ): Promise<number> {
   const result = await db
     .select({

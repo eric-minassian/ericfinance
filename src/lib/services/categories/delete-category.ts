@@ -1,22 +1,31 @@
 import { queryClient } from "@/context/query";
-import { categoriesTable, Category } from "@/lib/db/schema/categories";
+import { useDB } from "@/hooks/db";
+import {
+  deleteCategory,
+  DeleteCategoryParams,
+} from "@/lib/dao/categories/delete-category";
 import { Database } from "@/lib/types";
-import { eq } from "drizzle-orm";
+import { useMutation } from "@tanstack/react-query";
 
-interface DeleteCategoryRequest {
-  db: Database;
-  id: Category["id"];
+export async function deleteCategoryService(
+  db: Database,
+  params: DeleteCategoryParams
+): Promise<void> {
+  await deleteCategory(db, params);
+  queryClient.invalidateQueries({ queryKey: ["listCategories"] });
 }
 
-type DeleteCategoryResponse = void;
+export function useDeleteCategory() {
+  const { db } = useDB();
+  if (!db) {
+    throw new Error("Database connection is not available");
+  }
 
-export async function deleteCategory({
-  db,
-  id,
-}: DeleteCategoryRequest): Promise<DeleteCategoryResponse> {
-  await db.delete(categoriesTable).where(eq(categoriesTable.id, id));
-
-  queryClient.invalidateQueries({ queryKey: ["categories"] });
-
-  return;
+  return useMutation({
+    mutationFn: async (params: DeleteCategoryParams) =>
+      deleteCategoryService(db, params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listCategories"] });
+    },
+  });
 }

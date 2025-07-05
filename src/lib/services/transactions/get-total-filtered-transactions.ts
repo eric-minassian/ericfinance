@@ -1,8 +1,12 @@
 import { useDB } from "@/hooks/db";
-import { getTotalFilteredTransactions } from "@/lib/dao/transactions/get-total-filtered-transactions";
+import {
+  getTotalFilteredTransactions,
+  GetTotalFilteredTransactionsParams,
+} from "@/lib/dao/transactions/get-total-filtered-transactions";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { Category } from "@/lib/db/schema/categories";
+import { Database } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseTotalFilteredTransactionsProps {
@@ -11,6 +15,13 @@ interface UseTotalFilteredTransactionsProps {
   endDate?: DateString;
   categoryId?: Category["id"];
   enabled?: boolean;
+}
+
+export async function getTotalFilteredTransactionsService(
+  db: Database,
+  params: GetTotalFilteredTransactionsParams
+): Promise<number> {
+  return getTotalFilteredTransactions(db, params);
 }
 
 export function useTotalFilteredTransactions({
@@ -35,7 +46,7 @@ export function useTotalFilteredTransactions({
       categoryId,
     ],
     queryFn: async () => {
-      return getTotalFilteredTransactions(db, {
+      return getTotalFilteredTransactionsService(db, {
         accountId,
         startDate,
         endDate,

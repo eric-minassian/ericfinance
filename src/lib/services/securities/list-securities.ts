@@ -1,11 +1,22 @@
 import { useDB } from "@/hooks/db";
+import {
+  listSecurities,
+  ListSecuritiesParams,
+  ListSecuritiesResult,
+} from "@/lib/dao/securities/list-securities";
 import { Account } from "@/lib/db/schema/accounts";
-import { securitiesTable } from "@/lib/db/schema/securities";
+import { Database } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { eq } from "drizzle-orm";
 
 interface UseListSecuritiesProps {
   accountId?: Account["id"];
+}
+
+export async function listSecuritiesService(
+  db: Database,
+  params: ListSecuritiesParams
+): Promise<ListSecuritiesResult[]> {
+  return listSecurities(db, params);
 }
 
 export function useListSecurities({ accountId }: UseListSecuritiesProps) {
@@ -14,18 +25,6 @@ export function useListSecurities({ accountId }: UseListSecuritiesProps) {
 
   return useQuery({
     queryKey: ["listSecurities", accountId],
-    queryFn: async () => {
-      return await db
-        .select({
-          id: securitiesTable.id,
-          amount: securitiesTable.amount,
-          date: securitiesTable.date,
-          ticker: securitiesTable.ticker,
-        })
-        .from(securitiesTable)
-        .where(
-          accountId ? eq(securitiesTable.accountId, accountId) : undefined
-        );
-    },
+    queryFn: async () => listSecuritiesService(db, { accountId }),
   });
 }

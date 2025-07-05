@@ -1,8 +1,12 @@
 import { useDB } from "@/hooks/db";
-import { listTransactionsByDate } from "@/lib/dao/transactions/list-transactions-by-date";
+import {
+  listTransactionsByDate,
+  ListTransactionsByDateResult,
+} from "@/lib/dao/transactions/list-transactions-by-date";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { Category } from "@/lib/db/schema/categories";
+import { Database } from "@/lib/types";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 
 interface UseListTransactionsGroupedByDateProps<T extends boolean | undefined> {
@@ -10,12 +14,18 @@ interface UseListTransactionsGroupedByDateProps<T extends boolean | undefined> {
   includeTransactions?: T;
 }
 
-export function useListTransactionsGroupedByDate<
+export async function listTransactionsGroupedByDateService<
   T extends boolean | undefined
->({
-  accountId,
-  includeTransactions,
-}: UseListTransactionsGroupedByDateProps<T>) {
+>(
+  db: Database,
+  params: UseListTransactionsGroupedByDateProps<T>
+): Promise<ListTransactionsByDateResult<T>> {
+  return listTransactionsByDate(db, params);
+}
+
+export function useListTransactionsGroupedByDate<T extends boolean | undefined>(
+  params: UseListTransactionsGroupedByDateProps<T>
+) {
   const { db } = useDB();
 
   if (!db) {
@@ -23,13 +33,12 @@ export function useListTransactionsGroupedByDate<
   }
 
   return useQuery({
-    queryKey: ["listTransactionsGroupedByDate", accountId, includeTransactions],
-    queryFn: async () => {
-      return listTransactionsByDate<T>(db, {
-        accountId,
-        includeTransactions,
-      });
-    },
+    queryKey: [
+      "listTransactionsGroupedByDate",
+      params.accountId,
+      params.includeTransactions,
+    ],
+    queryFn: async () => listTransactionsGroupedByDateService(db, params),
   });
 }
 
