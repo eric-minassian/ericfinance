@@ -3,16 +3,14 @@ import { transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { eq, sum } from "drizzle-orm";
 
-type Options = {
+export interface GetTransactionsAccountBalanceParams {
   accountId: Account["id"];
-};
-
-type Return = number;
+}
 
 export async function getTransactionsAccountBalance(
   db: Database,
-  { accountId }: Options
-): Promise<Return> {
+  { accountId }: GetTransactionsAccountBalanceParams
+): Promise<number> {
   const result = await db
     .select({
       balance: sum(transactionsTable.amount),
