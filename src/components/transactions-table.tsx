@@ -4,7 +4,7 @@ import { Account } from "@/lib/db/schema/accounts";
 import { useListCategories } from "@/lib/services/categories/list-categories";
 import { useTotalFilteredTransactions } from "@/lib/services/transactions/get-total-filtered-transactions";
 import { useInfiniteListTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-by-date";
-import { updateTransaction } from "@/lib/services/transactions/update-transaction";
+import { useUpdateTransaction } from "@/lib/services/transactions/update-transaction";
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
@@ -38,6 +38,7 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
   const [categoryId, setCategoryId] = useState<string | undefined>();
 
   const { data: categories } = useListCategories();
+  const updateTransactionMutation = useUpdateTransaction();
 
   const { db } = useDB();
   const {
@@ -132,8 +133,7 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
                             if (!db) return;
                             const categoryId =
                               value === "uncategorized" ? null : value;
-                            await updateTransaction({
-                              db,
+                            await updateTransactionMutation.mutateAsync({
                               transactionId: transaction.id,
                               categoryId,
                             });

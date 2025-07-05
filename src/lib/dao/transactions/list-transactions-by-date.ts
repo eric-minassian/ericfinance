@@ -4,7 +4,7 @@ import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { and, asc, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 
-type Options = {
+export interface ListTransactionsByDateParams {
   accountId?: string;
   startDate?: DateString;
   endDate?: DateString;
@@ -13,18 +13,22 @@ type Options = {
   pageSize?: number;
   order?: "asc" | "desc";
   includeTransactions?: boolean;
-};
+}
 
-type ReturnWithoutTransactions = {
+export interface TransactionsByDateWithoutTransactions {
   date: DateString;
   total: number;
-};
-type ReturnWithTransactions = ReturnWithoutTransactions & {
+}
+
+export interface TransactionsByDateWithTransactions
+  extends TransactionsByDateWithoutTransactions {
   transactions: Pick<Transaction, "id" | "amount" | "payee" | "categoryId">[];
-};
-type Return<T extends boolean | undefined> = (T extends true
-  ? ReturnWithTransactions
-  : ReturnWithoutTransactions)[];
+}
+
+export type ListTransactionsByDateResult<T extends boolean | undefined> =
+  (T extends true
+    ? TransactionsByDateWithTransactions
+    : TransactionsByDateWithoutTransactions)[];
 
 export async function listTransactionsByDate<T extends boolean | undefined>(
   db: Database,
@@ -37,8 +41,8 @@ export async function listTransactionsByDate<T extends boolean | undefined>(
     pageSize,
     order = "asc",
     includeTransactions,
-  }: Options
-): Promise<Return<T>> {
+  }: ListTransactionsByDateParams
+): Promise<ListTransactionsByDateResult<T>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const selectFields: Record<string, any> = {
     date: transactionsTable.date,
@@ -81,5 +85,5 @@ export async function listTransactionsByDate<T extends boolean | undefined>(
     date: row.date,
     total: row.total ? Number(row.total) : 0,
     transactions: row.transactions ? JSON.parse(row.transactions) : undefined,
-  })) as Return<T>;
+  })) as ListTransactionsByDateResult<T>;
 }

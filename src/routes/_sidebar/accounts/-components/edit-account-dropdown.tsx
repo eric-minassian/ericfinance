@@ -1,7 +1,7 @@
 import Icon from "@/components/icon";
 import { ImportDialog } from "@/components/import-dialog";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,9 +48,7 @@ export function EditAccountDropdown({
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem>Edit account</DropdownMenuItem>
-          <DialogTrigger asChild>
-            <DropdownMenuItem>Upload {accountVariant}</DropdownMenuItem>
-          </DialogTrigger>
+          <DropdownMenuItem>Upload {accountVariant}</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={handleDeleteAccount}>
             Delete account

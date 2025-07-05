@@ -1,8 +1,11 @@
-import { TransactionsDao } from "@/lib/dao/transactions";
+import { listRules, ListRulesResult } from "@/lib/dao/rules/list-rules";
+import {
+  listTransactions,
+  ListTransactionsResult,
+} from "@/lib/dao/transactions/list-transactions";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { eq } from "drizzle-orm";
-import { listRules } from "./list-rules";
 
 interface ApplyRulesRequest {
   db: Database;
@@ -11,10 +14,10 @@ interface ApplyRulesRequest {
 
 type ApplyRulesResponse = void;
 
+type RuleStatement = ListRulesResult["statements"][number];
+
 function getFieldValue(
-  transaction: Awaited<
-    ReturnType<typeof TransactionsDao.listTransactions>
-  >[number],
+  transaction: ListTransactionsResult,
   field: string
 ): string | null {
   // Check if field exists as a direct column on the transaction
@@ -41,10 +44,8 @@ function getFieldValue(
 }
 
 function evaluateStatement(
-  transaction: Awaited<
-    ReturnType<typeof TransactionsDao.listTransactions>
-  >[number],
-  statement: Awaited<ReturnType<typeof listRules>>[number]["statements"][number]
+  transaction: ListTransactionsResult,
+  statement: RuleStatement
 ): boolean {
   const fieldValue = getFieldValue(transaction, statement.field);
 
@@ -82,12 +83,10 @@ function evaluateStatement(
 }
 
 function evaluateRule(
-  transaction: Awaited<
-    ReturnType<typeof TransactionsDao.listTransactions>
-  >[number],
-  rule: Awaited<ReturnType<typeof listRules>>[number]
+  transaction: ListTransactionsResult,
+  rule: ListRulesResult
 ): boolean {
-  return rule.statements.every((statement) =>
+  return rule.statements.every((statement: RuleStatement) =>
     evaluateStatement(transaction, statement)
   );
 }
@@ -96,15 +95,13 @@ export async function applyRules({
   db,
   transactionIds,
 }: ApplyRulesRequest): Promise<ApplyRulesResponse> {
-  const rules = await listRules({ db });
+  const rules = await listRules(db);
 
   if (rules.length === 0) {
     return;
   }
 
-  const transactions = await TransactionsDao.listTransactions(db, {
-    transactionIds,
-  });
+  const transactions = await listTransactions(db, { transactionIds });
 
   for (const transaction of transactions) {
     for (const rule of rules) {

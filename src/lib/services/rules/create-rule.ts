@@ -1,44 +1,30 @@
-import { queryClient } from "@/context/query";
+import { useDB } from "@/hooks/db";
 import {
-  RuleStatement,
-  ruleStatementsTable,
-} from "@/lib/db/schema/rule-statements";
-import { Rule, rulesTable } from "@/lib/db/schema/rules";
+  createRule,
+  CreateRuleParams,
+  CreateRuleResult,
+} from "@/lib/dao/rules/create-rule";
 import { Database } from "@/lib/types";
-import { applyRules } from "./apply-rules";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface CreateRuleRequest {
-  db: Database;
-  rule: Omit<Rule, "id" | "createdAt" | "updatedAt"> & {
-    statements: Array<
-      Omit<RuleStatement, "id" | "ruleId" | "createdAt" | "updatedAt">
-    >;
-  };
+export async function createRuleService(
+  db: Database,
+  params: CreateRuleParams
+): Promise<CreateRuleResult> {
+  return await createRule(db, params);
 }
 
-type CreateRuleResponse = void;
+export function useCreateRule() {
+  const { db } = useDB();
+  const queryClient = useQueryClient();
 
-export async function createRule({
-  db,
-  rule,
-}: CreateRuleRequest): Promise<CreateRuleResponse> {
-  const { statements, ...ruleData } = rule;
-
-  await db.transaction(async (tx) => {
-    const [newRule] = await tx
-      .insert(rulesTable)
-      .values(ruleData)
-      .returning({ id: rulesTable.id });
-
-    await tx.insert(ruleStatementsTable).values(
-      statements.map((statement) => ({
-        ...statement,
-        ruleId: newRule.id,
-      }))
-    );
+  return useMutation({
+    mutationFn: async (params: CreateRuleParams) => {
+      if (!db) throw new Error("Database not available");
+      return await createRuleService(db, params);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rules"] });
+    },
   });
-
-  await applyRules({ db });
-
-  queryClient.invalidateQueries({ queryKey: ["rules"] });
 }

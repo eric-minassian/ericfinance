@@ -1,14 +1,13 @@
 import Icon from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDB } from "@/hooks/db";
-import { deleteCategory } from "@/lib/services/categories/delete-category";
+import { useDeleteCategory } from "@/lib/services/categories/delete-category";
 import { useListCategories } from "@/lib/services/categories/list-categories";
 import { CreateCategoryButton } from "./create-category-button";
 
 export function ListCategories() {
-  const { db } = useDB();
   const { data } = useListCategories();
+  const deleteCategoryMutation = useDeleteCategory();
 
   return (
     <Card>
@@ -29,9 +28,8 @@ export function ListCategories() {
                     variant="destructive"
                     size="icon"
                     onClick={async () => {
-                      await deleteCategory({
-                        db: db!,
-                        id: category.id,
+                      await deleteCategoryMutation.mutateAsync({
+                        categoryId: category.id,
                       });
                     }}
                   >

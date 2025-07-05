@@ -9,9 +9,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useDB } from "@/hooks/db";
 import { useAppForm } from "@/hooks/form";
-import { createCategory } from "@/lib/services/categories/create-category";
+import { useCreateCategory } from "@/lib/services/categories/create-category";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -42,7 +41,7 @@ interface CreateCategoryDialogProps {
 }
 
 function CreateCategoryDialog({ setOpen }: CreateCategoryDialogProps) {
-  const { db } = useDB();
+  const createCategoryMutation = useCreateCategory();
 
   const form = useAppForm({
     validators: { onSubmit: createCategoryFormValidator },
@@ -51,7 +50,7 @@ function CreateCategoryDialog({ setOpen }: CreateCategoryDialogProps) {
     },
     onSubmit: async ({ value }) => {
       try {
-        await createCategory({ db: db!, name: value.name });
+        await createCategoryMutation.mutateAsync({ name: value.name });
         toast.success(`Category ${value.name} created successfully!`);
         form.reset();
         setOpen(false);

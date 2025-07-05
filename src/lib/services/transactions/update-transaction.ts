@@ -1,22 +1,46 @@
-import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
+import { queryClient } from "@/context/query";
+import { useDB } from "@/hooks/db";
+import {
+  updateTransaction,
+  UpdateTransactionParams,
+} from "@/lib/dao/transactions/update-transaction";
 import { Database } from "@/lib/types";
-import { eq } from "drizzle-orm";
+import { useMutation } from "@tanstack/react-query";
 
-interface UpdateTransactionRequest {
-  db: Database;
-  transactionId: Transaction["id"];
-  categoryId: Transaction["categoryId"];
+export async function updateTransactionService(
+  db: Database,
+  params: UpdateTransactionParams
+): Promise<void> {
+  await updateTransaction(db, params);
+  // Invalidate related queries
+  queryClient.invalidateQueries({
+    queryKey: ["listTransactionsGroupedByDate"],
+  });
+  queryClient.invalidateQueries({
+    queryKey: ["infiniteListTransactionsGroupedByDate"],
+  });
+  queryClient.invalidateQueries({ queryKey: ["totalFilteredTransactions"] });
 }
 
-type UpdateTransactionResponse = void;
+export function useUpdateTransaction() {
+  const { db } = useDB();
+  if (!db) {
+    throw new Error("Database connection is not available");
+  }
 
-export async function updateTransaction({
-  db,
-  transactionId,
-  categoryId,
-}: UpdateTransactionRequest): Promise<UpdateTransactionResponse> {
-  await db
-    .update(transactionsTable)
-    .set({ categoryId })
-    .where(eq(transactionsTable.id, transactionId));
+  return useMutation({
+    mutationFn: async (params: UpdateTransactionParams) =>
+      updateTransactionService(db, params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["listTransactionsGroupedByDate"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["infiniteListTransactionsGroupedByDate"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["totalFilteredTransactions"],
+      });
+    },
+  });
 }

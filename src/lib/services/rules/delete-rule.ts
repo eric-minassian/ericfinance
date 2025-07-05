@@ -1,29 +1,28 @@
 import { queryClient } from "@/context/query";
-import { ruleStatementsTable } from "@/lib/db/schema/rule-statements";
-import { Rule, rulesTable } from "@/lib/db/schema/rules";
+import { useDB } from "@/hooks/db";
+import { deleteRule, DeleteRuleParams } from "@/lib/dao/rules/delete-rule";
 import { Database } from "@/lib/types";
-import { eq } from "drizzle-orm";
+import { useMutation } from "@tanstack/react-query";
 
-interface DeleteRuleRequest {
-  db: Database;
-  id: Rule["id"];
+export async function deleteRuleService(
+  db: Database,
+  params: DeleteRuleParams
+): Promise<void> {
+  await deleteRule(db, params);
+  queryClient.invalidateQueries({ queryKey: ["listRules"] });
 }
 
-type DeleteRuleResponse = void;
+export function useDeleteRule() {
+  const { db } = useDB();
+  if (!db) {
+    throw new Error("Database connection is not available");
+  }
 
-export async function deleteRule({
-  db,
-  id,
-}: DeleteRuleRequest): Promise<DeleteRuleResponse> {
-  await db.transaction(async (tx) => {
-    await tx
-      .delete(ruleStatementsTable)
-      .where(eq(ruleStatementsTable.ruleId, id));
-
-    await tx.delete(rulesTable).where(eq(rulesTable.id, id));
+  return useMutation({
+    mutationFn: async (params: DeleteRuleParams) =>
+      deleteRuleService(db, params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listRules"] });
+    },
   });
-
-  queryClient.invalidateQueries({ queryKey: ["rules"] });
-
-  return;
 }

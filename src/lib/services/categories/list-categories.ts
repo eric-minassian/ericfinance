@@ -1,6 +1,16 @@
 import { useDB } from "@/hooks/db";
-import { listCategories } from "@/lib/dao/categories/list-categories";
+import {
+  listCategories,
+  ListCategoriesResult,
+} from "@/lib/dao/categories/list-categories";
+import { Database } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
+
+export async function listCategoriesService(
+  db: Database
+): Promise<ListCategoriesResult[]> {
+  return listCategories(db);
+}
 
 export function useListCategories() {
   const { db } = useDB();
@@ -11,6 +21,6 @@ export function useListCategories() {
 
   return useQuery({
     queryKey: ["listCategories"],
-    queryFn: () => listCategories(db),
+    queryFn: () => listCategoriesService(db),
   });
 }

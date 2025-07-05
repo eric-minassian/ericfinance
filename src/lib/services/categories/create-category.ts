@@ -1,28 +1,33 @@
 import { queryClient } from "@/context/query";
-import { categoriesTable, Category } from "@/lib/db/schema/categories";
+import { useDB } from "@/hooks/db";
+import {
+  createCategory,
+  CreateCategoryParams,
+  CreateCategoryResult,
+} from "@/lib/dao/categories/create-category";
 import { Database } from "@/lib/types";
+import { useMutation } from "@tanstack/react-query";
 
-interface CreateCategoryRequest {
-  db: Database;
-  name: Category["name"];
+export async function createCategoryService(
+  db: Database,
+  params: CreateCategoryParams
+): Promise<CreateCategoryResult> {
+  const result = await createCategory(db, params);
+  queryClient.invalidateQueries({ queryKey: ["listCategories"] });
+  return result;
 }
 
-type CreateCategoryResponse = {
-  id: string;
-};
+export function useCreateCategory() {
+  const { db } = useDB();
+  if (!db) {
+    throw new Error("Database connection is not available");
+  }
 
-export async function createCategory({
-  db,
-  name,
-}: CreateCategoryRequest): Promise<CreateCategoryResponse> {
-  const [category] = await db
-    .insert(categoriesTable)
-    .values({
-      name,
-    })
-    .returning({ id: categoriesTable.id });
-
-  queryClient.invalidateQueries({ queryKey: ["categories"] });
-
-  return category;
+  return useMutation({
+    mutationFn: async (params: CreateCategoryParams) =>
+      createCategoryService(db, params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["listCategories"] });
+    },
+  });
 }
