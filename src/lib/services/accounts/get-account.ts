@@ -1,33 +1,17 @@
 import { useDB } from "@/hooks/db";
-import { Account, accountsTable } from "@/lib/db/schema/accounts";
+import {
+  getAccount,
+  GetAccountParams,
+  GetAccountResult,
+} from "@/lib/dao/accounts/get-account";
 import { Database } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
-import { eq } from "drizzle-orm";
 
-interface GetAccountParams {
-  accountId: Account["id"];
-}
-
-export async function getAccount(db: Database, params: GetAccountParams) {
-  const [account] = await db
-    .select({
-      id: accountsTable.id,
-      name: accountsTable.name,
-      variant: accountsTable.variant,
-    })
-    .from(accountsTable)
-    .where(eq(accountsTable.id, params.accountId))
-    .limit(1);
-
-  if (!account) {
-    return null;
-  }
-
-  return {
-    id: account.id,
-    name: account.name,
-    variant: account.variant,
-  };
+export async function getAccountService(
+  db: Database,
+  params: GetAccountParams
+): Promise<GetAccountResult | null> {
+  return getAccount(db, params);
 }
 
 export function useGetAccount(params: GetAccountParams) {
@@ -36,6 +20,6 @@ export function useGetAccount(params: GetAccountParams) {
 
   return useQuery({
     queryKey: ["getAccount", params],
-    queryFn: async () => getAccount(db, params),
+    queryFn: async () => getAccountService(db, params),
   });
 }

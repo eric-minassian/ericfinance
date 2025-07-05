@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/chart";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
-import { useListNetWorth } from "@/lib/services/accounts/get-net-worth";
+import { useListNetWorth } from "@/lib/services/accounts/list-net-worth";
 import { formatCurrency } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import {

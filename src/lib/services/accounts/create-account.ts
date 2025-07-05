@@ -1,18 +1,18 @@
 import { queryClient } from "@/context/query";
 import { useDB } from "@/hooks/db";
-import { Account, accountsTable } from "@/lib/db/schema/accounts";
+import {
+  createAccount,
+  CreateAccountParams,
+  CreateAccountResult,
+} from "@/lib/dao/accounts/create-account";
 import { Database } from "@/lib/types";
 import { useMutation } from "@tanstack/react-query";
 
-type CreateAccountParams = Pick<Account, "name" | "variant">;
-
-export async function createAccount(db: Database, params: CreateAccountParams) {
-  const [createdAccount] = await db
-    .insert(accountsTable)
-    .values(params)
-    .returning({ id: accountsTable.id });
-
-  return createdAccount;
+export async function createAccountService(
+  db: Database,
+  params: CreateAccountParams
+): Promise<CreateAccountResult> {
+  return createAccount(db, params);
 }
 
 export function useCreateAccount() {
@@ -23,7 +23,7 @@ export function useCreateAccount() {
 
   return useMutation({
     mutationFn: async (params: CreateAccountParams) =>
-      createAccount(db, params),
+      createAccountService(db, params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["listAccounts"] });
     },

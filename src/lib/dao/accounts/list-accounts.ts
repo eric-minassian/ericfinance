@@ -1,9 +1,15 @@
 import { Account, accountsTable } from "@/lib/db/schema/accounts";
 import { Database } from "@/lib/types";
 
-type Return = (Pick<Account, "id" | "name" | "variant"> & {})[];
+export interface ListAccountsResult {
+  id: Account["id"];
+  name: Account["name"];
+  variant: Account["variant"];
+}
 
-export async function listAccounts(db: Database): Promise<Return> {
+export async function listAccounts(
+  db: Database
+): Promise<ListAccountsResult[]> {
   return await db
     .select({
       id: accountsTable.id,

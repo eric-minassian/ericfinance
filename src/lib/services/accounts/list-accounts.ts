@@ -1,6 +1,16 @@
 import { useDB } from "@/hooks/db";
-import { listAccounts } from "@/lib/dao/accounts/list-accounts";
+import {
+  listAccounts,
+  ListAccountsResult,
+} from "@/lib/dao/accounts/list-accounts";
+import { Database } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
+
+export async function listAccountsService(
+  db: Database
+): Promise<ListAccountsResult[]> {
+  return listAccounts(db);
+}
 
 export function useListAccounts() {
   const { db } = useDB();
@@ -11,6 +21,6 @@ export function useListAccounts() {
 
   return useQuery({
     queryKey: ["listAccounts"],
-    queryFn: () => listAccounts(db),
+    queryFn: () => listAccountsService(db),
   });
 }
