@@ -48,9 +48,10 @@ function CreateTransactionDialog({
         const parsedValue = createTransactionFormValidator.parse(value);
         await createTransactionMutation.mutateAsync([
           {
-            ...parsedValue,
             accountId,
             date: DateString.fromString(parsedValue.date),
+            amount: parsedValue.amount * 100, // Convert to cents
+            payee: parsedValue.payee,
           },
         ]);
         form.reset();
