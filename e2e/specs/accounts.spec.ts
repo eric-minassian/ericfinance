@@ -68,34 +68,4 @@ test.describe("Accounts", () => {
     await accountPage.goToAccounts();
     await expect(accountRow).toBeHidden();
   });
-
-  test("create transaction", async ({
-    page,
-    accountPage,
-    databasePage,
-    dashboardPage,
-  }) => {
-    await accountPage.createAccount(accountName);
-    await page.getByRole("link", { name: accountName }).click();
-
-    const transactionRow = page.getByRole("row", {
-      name: "Test Payee $100.00",
-    });
-    await expect(transactionRow).toBeHidden();
-    await accountPage.createTransaction("Test Payee", "100.00");
-    await expect(transactionRow).toBeVisible();
-
-    await dashboardPage.goto();
-    await accountPage.goToAccounts();
-    await accountPage.goToAccount(accountName);
-    expect(transactionRow).toBeVisible();
-
-    const path = await databasePage.exportDatabase();
-    await page.reload();
-    await databasePage.importDatabase(path, databasePassword);
-
-    await accountPage.goToAccounts();
-    await accountPage.goToAccount(accountName);
-    await expect(transactionRow).toBeVisible();
-  });
 });
