@@ -1,3 +1,4 @@
+import { useDB } from "@/hooks/db";
 import { listRules, ListRulesResult } from "@/lib/dao/rules/list-rules";
 import {
   listTransactions,
@@ -5,6 +6,7 @@ import {
 } from "@/lib/dao/transactions/list-transactions";
 import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { eq } from "drizzle-orm";
 
 interface ApplyRulesRequest {
@@ -125,4 +127,33 @@ export async function applyRules({
       }
     }
   }
+}
+
+export async function applyRulesService(db: Database): Promise<void> {
+  await applyRules({ db });
+}
+
+export function useApplyRules() {
+  const { db } = useDB();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!db) throw new Error("Database not available");
+      return await applyRulesService(db);
+    },
+    onSuccess: () => {
+      // Invalidate all transaction-related queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ["listTransactions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["listTransactionsGroupedByDate"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["infiniteListTransactionsGroupedByDate"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["totalFilteredTransactions"],
+      });
+    },
+  });
 }
