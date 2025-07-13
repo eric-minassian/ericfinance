@@ -2,6 +2,7 @@ import Icon from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApplyRules } from "@/lib/services/rules/apply-rules";
 import { useDeleteRule } from "@/lib/services/rules/delete-rule";
 import { useListRules } from "@/lib/services/rules/list-rules";
 import { CreateRuleButton } from "./create-rule-button";
@@ -9,13 +10,26 @@ import { CreateRuleButton } from "./create-rule-button";
 export function ListRules() {
   const { data } = useListRules();
   const deleteRuleMutation = useDeleteRule();
+  const applyRulesMutation = useApplyRules();
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Rules</CardTitle>
-          <CreateRuleButton />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await applyRulesMutation.mutateAsync();
+              }}
+              disabled={applyRulesMutation.isPending}
+            >
+              <Icon variant="sync" />
+              {applyRulesMutation.isPending ? "Applying..." : "Apply Rules"}
+            </Button>
+            <CreateRuleButton />
+          </div>
         </div>
       </CardHeader>
       <CardContent>
