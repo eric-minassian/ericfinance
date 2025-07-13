@@ -6,12 +6,17 @@ import {
 } from "@/lib/dao/rules/create-rule";
 import { Database } from "@/lib/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { applyRules } from "./apply-rules";
 
 export async function createRuleService(
   db: Database,
   params: CreateRuleParams
 ): Promise<CreateRuleResult> {
-  return await createRule(db, params);
+  const result = await createRule(db, params);
+
+  await applyRules({ db });
+
+  return result;
 }
 
 export function useCreateRule() {
@@ -24,7 +29,17 @@ export function useCreateRule() {
       return await createRuleService(db, params);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["rules"] });
+      queryClient.invalidateQueries({ queryKey: ["listRules"] });
+      queryClient.invalidateQueries({ queryKey: ["listTransactions"] });
+      queryClient.invalidateQueries({
+        queryKey: ["listTransactionsGroupedByDate"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["infiniteListTransactionsGroupedByDate"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["totalFilteredTransactions"],
+      });
     },
   });
 }

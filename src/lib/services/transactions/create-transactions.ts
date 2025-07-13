@@ -5,6 +5,7 @@ import { importsTable } from "@/lib/db/schema/imports";
 import { InsertTransaction } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { useMutation } from "@tanstack/react-query";
+import { applyRules } from "../rules/apply-rules";
 
 export async function createTransactionsService(
   db: Database,
@@ -16,12 +17,14 @@ export async function createTransactionsService(
       .values({})
       .returning({ insertId: importsTable.id });
 
-    await createTransactions(tx, {
+    const transactionIds = await createTransactions(tx, {
       transactions: transactions.map((transaction) => ({
         ...transaction,
         importId: insertId,
       })),
     });
+
+    await applyRules({ db: tx, transactionIds });
   });
 }
 

@@ -1,5 +1,5 @@
 import { DateString } from "@/lib/date";
-import { transactionsTable } from "@/lib/db/schema/transactions";
+import { Transaction, transactionsTable } from "@/lib/db/schema/transactions";
 import { Database } from "@/lib/types";
 import { InferInsertModel } from "drizzle-orm";
 
@@ -12,6 +12,10 @@ export interface CreateTransactionsParams {
 export async function createTransactions(
   db: Database,
   { transactions }: CreateTransactionsParams
-): Promise<void> {
-  await db.insert(transactionsTable).values(transactions);
+): Promise<Transaction["id"][]> {
+  const result = await db
+    .insert(transactionsTable)
+    .values(transactions)
+    .returning({ id: transactionsTable.id });
+  return result.map((row) => row.id);
 }
