@@ -26,7 +26,11 @@ export class AccountDetailPage {
   }
 
   transactionRowLocator(payee: string, amount: string) {
-    return this.page.getByRole("row", { name: `${payee} $${amount}` });
+    return this.page.getByRole("row", {
+      name: amount.startsWith("-")
+        ? `${payee} -$${amount.slice(1)}`
+        : `${payee} $${amount}`,
+    });
   }
 
   transactionCategoryLocator(payee: string, amount: string) {

@@ -6,10 +6,10 @@ test.describe("Account Detail Page", () => {
   const categoryName = "Test Category";
   const transactions = [
     { payee: "Grocery Store", amount: "150.00" },
-    { payee: "Gas Station", amount: "75.50" },
+    { payee: "Gas Station", amount: "-75.50" },
     { payee: "Coffee Shop", amount: "12.95" },
   ];
-  const transactionsTotal = "238.45";
+  const transactionsTotal = "87.45";
 
   test.beforeEach(async ({ page, databasePage }) => {
     await page.goto("/");
