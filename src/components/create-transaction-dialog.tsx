@@ -20,7 +20,7 @@ import {
 import { Input } from "./ui/input";
 
 const createTransactionFormValidator = z.object({
-  amount: z.number().min(0, "Amount must be a positive number"),
+  amount: z.number(),
   date: z.string().min(1, "Date is required"),
   payee: z.string().min(1, "Payee is required"),
 });
