@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter web build"
+    "build": "pnpm web build && pnpm cdk build",
+    "web": "pnpm --filter web",
+    "cdk": "pnpm --filter @ericfinance/cdk"
   }
 }
