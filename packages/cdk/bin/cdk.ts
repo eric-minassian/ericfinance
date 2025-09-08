@@ -1,20 +1,40 @@
 #!/usr/bin/env node
-import * as cdk from 'aws-cdk-lib';
-import { CdkStack } from '../lib/cdk-stack';
+import { App } from "aws-cdk-lib";
+import * as path from "path";
+import { AuthStack } from "../lib/auth-stack";
+import { getEnvironmentConfig } from "../lib/config";
+import { StaticSiteStack } from "../lib/static-site-stack";
 
-const app = new cdk.App();
-new CdkStack(app, 'CdkStack', {
-  /* If you don't specify 'env', this stack will be environment-agnostic.
-   * Account/Region-dependent features and context lookups will not work,
-   * but a single synthesized template can be deployed anywhere. */
+const app = new App();
 
-  /* Uncomment the next line to specialize this stack for the AWS Account
-   * and Region that are implied by the current CLI configuration. */
-  // env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: process.env.CDK_DEFAULT_REGION },
+const envName = app.node.tryGetContext("stage") || "dev";
+const config = getEnvironmentConfig(envName);
 
-  /* Uncomment the next line if you know exactly what Account and Region you
-   * want to deploy the stack to. */
-  // env: { account: '123456789012', region: 'us-east-1' },
+const webPath = path.resolve(__dirname, "../../../apps/web/dist");
 
-  /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
+const env = {
+  account: config.account,
+  region: config.region,
+};
+
+const authStack = new AuthStack(app, `EricFinance-Auth-${config.name}`, {
+  config,
+  env,
 });
+
+const staticSiteStack = new StaticSiteStack(
+  app,
+  `EricFinance-StaticSite-${config.name}`,
+  {
+    config,
+    authStack,
+    buildPath: webPath,
+    env,
+  }
+);
+
+staticSiteStack.addDependency(authStack);
+
+// CDK Nag
+// Aspects.of(app).add(new AwsSolutionsChecks());
+// Aspects.of(app).add(new HIPAASecurityChecks());
