@@ -97,7 +97,15 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         filename = "database.db";
       }
 
-      const blob = new Blob([exportData], {
+      // Ensure we pass ArrayBuffer (not a widened Uint8Array subtype) for environments
+      // where Uint8Array<ArrayBufferLike> conflicts with BlobPart typing.
+      // Always clone to a standalone ArrayBuffer to satisfy BlobPart typing and
+      // exclude potential SharedArrayBuffer in widened lib environments.
+      const exportArrayBuffer = exportData.buffer.slice(
+        exportData.byteOffset,
+        exportData.byteOffset + exportData.byteLength
+      ) as ArrayBuffer;
+      const blob = new Blob([exportArrayBuffer], {
         type: password ? "application/octet-stream" : "application/x-sqlite3",
       });
       const url = URL.createObjectURL(blob);

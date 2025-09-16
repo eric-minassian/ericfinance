@@ -24,7 +24,7 @@ import { z } from "zod";
 const createAccountFormValidator = z.object({
   name: z.string().min(1, "Account name is required"),
   variant: z.enum(["transactions", "securities"], {
-    errorMap: () => ({ message: "Invalid account variant" }),
+    error: "Invalid account variant",
   }),
 });
 
