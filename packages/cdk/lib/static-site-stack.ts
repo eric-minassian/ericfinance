@@ -14,12 +14,10 @@ import {
   BucketEncryption,
 } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
-import { AuthStack } from "./auth-stack";
-import { EnvironmentConfig } from "./config";
+import { EnvironmentConfig } from "./utils/config";
 
 export interface StaticSiteStackProps extends StackProps {
   config: EnvironmentConfig;
-  authStack: AuthStack;
   buildPath: string;
 }
 
@@ -30,7 +28,7 @@ export class StaticSiteStack extends Stack {
   constructor(scope: App, id: string, props: StaticSiteStackProps) {
     super(scope, id, props);
 
-    const { config, authStack, buildPath } = props;
+    const { config, buildPath } = props;
 
     // S3 Bucket for static assets
     this.bucket = new Bucket(this, "StaticSiteBucket", {
