@@ -30,7 +30,11 @@ async function deriveKey(
   return crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: salt,
+      // Some type environments (e.g. overlapping DOM / custom lib) widen the
+      // Uint8Array buffer type to ArrayBufferLike (including SharedArrayBuffer),
+      // which is not assignable to the BufferSource definition that expects
+      // ArrayBuffer. Narrow explicitly to an ArrayBuffer.
+      salt: salt.buffer as ArrayBuffer,
       iterations: 100000, // 100k iterations for security
       hash: "SHA-256",
     },
@@ -39,6 +43,22 @@ async function deriveKey(
     false,
     ["encrypt", "decrypt"]
   );
+}
+
+// Safely obtain an ArrayBuffer for a Uint8Array view without including
+// unrelated bytes when the view is a subarray.
+function viewToArrayBuffer(view: Uint8Array): ArrayBuffer {
+  if (
+    view.byteOffset === 0 &&
+    view.byteLength === view.buffer.byteLength &&
+    view.buffer instanceof ArrayBuffer
+  ) {
+    return view.buffer;
+  }
+  return view.buffer.slice(
+    view.byteOffset,
+    view.byteOffset + view.byteLength
+  ) as ArrayBuffer;
 }
 
 /**
@@ -59,7 +79,8 @@ export async function encryptDatabase(
   const encryptedData = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: iv },
     key,
-    databaseBuffer
+    // Provide ArrayBuffer to satisfy stricter BufferSource typing
+    viewToArrayBuffer(databaseBuffer)
   );
 
   // Create the encrypted database structure
@@ -185,7 +206,7 @@ export async function decryptDatabase(
     const decryptedData = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: iv },
       key,
-      encryptedData
+      viewToArrayBuffer(encryptedData)
     );
 
     return new Uint8Array(decryptedData);
