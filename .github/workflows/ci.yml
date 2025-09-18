@@ -33,14 +33,50 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build project
+        run: pnpm --filter web build
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-west-2
 
+      - name: Deploy CDK stack
+        run: pnpm --filter=@ericfinance/cdk run deploy --context stage=beta
+
+  prod-deploy:
+    name: Prod Deploy
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Build project
         run: pnpm --filter web build
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-west-2
+
       - name: Deploy CDK stack
-        run: pnpm --filter=@ericfinance/cdk run deploy --context stage=beta
+        run: pnpm --filter=@ericfinance/cdk run deploy --context stage=prod
