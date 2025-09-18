@@ -49,6 +49,7 @@ jobs:
     name: Prod Deploy
     timeout-minutes: 15
     runs-on: ubuntu-latest
+    needs: beta-deploy
     environment: prod
 
     steps:
