@@ -8,6 +8,7 @@ import {
   WebIdentityPrincipal,
 } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
+import { buildNaming, Components } from "./utils/naming";
 
 export interface GithubActionsRepositoryConfig {
   readonly owner: string;
@@ -23,6 +24,7 @@ export interface GithubActionsRoleConfig {
 export interface GithubActionsAwsAuthStackProps extends StackProps {
   readonly repositoryConfig: GithubActionsRepositoryConfig;
   readonly roleConfig: GithubActionsRoleConfig;
+  readonly stageName: string;
 }
 
 export class GithubActionsAwsAuthStack extends Stack {
@@ -32,6 +34,11 @@ export class GithubActionsAwsAuthStack extends Stack {
     props: GithubActionsAwsAuthStackProps
   ) {
     super(scope, id, props);
+
+    const naming = buildNaming({
+      stage: props.stageName,
+      account: this.account,
+    });
 
     const githubProvider = new OpenIdConnectProvider(
       this,
@@ -62,7 +69,7 @@ export class GithubActionsAwsAuthStack extends Stack {
       ),
       inlinePolicies: props.roleConfig.inlinePolicies,
       managedPolicies: props.roleConfig.managedPolicies,
-      roleName: "GitHubActionsOidcAccessRole",
+      roleName: naming.role(Components.githubOidc),
       description:
         "This role is used via GitHub Actions assume the role in the target AWS account",
       maxSessionDuration: Duration.hours(12),
@@ -74,6 +81,6 @@ export class GithubActionsAwsAuthStack extends Stack {
       exportName: "GitHubActionsOidcAccessRoleArn",
     });
 
-    Tags.of(this).add("component", "CdkGithubActionsOidcIamRole");
+    Tags.of(this).add("component", "cdk-github-actions-oidc-iam-role");
   }
 }

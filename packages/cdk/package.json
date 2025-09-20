@@ -1,12 +1,7 @@
 {
   "name": "@ericfinance/cdk",
   "version": "0.1.0",
-  "bin": {
-    "cdk": "bin/cdk.js"
-  },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
     "bootstrap": "cdk bootstrap",
@@ -16,17 +11,17 @@
     "synth": "cdk synth"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.138",
     "@types/jest": "^30.0.0",
     "@types/node": "24.5.0",
     "aws-cdk": "2.1029.1",
+    "aws-cdk-lib": "^2.215.0",
+    "cdk-nag": "^2.37.33",
+    "constructs": "^10.4.2",
+    "esbuild": "^0.25.10",
     "jest": "^30.1.3",
     "ts-jest": "^29.4.2",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.2"
-  },
-  "dependencies": {
-    "aws-cdk-lib": "2.215.0",
-    "cdk-nag": "^2.37.28",
-    "constructs": "^10.4.2"
   }
 }

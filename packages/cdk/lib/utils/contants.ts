@@ -3,4 +3,4 @@ export const REPOSITORY_CONFIG = {
   repo: "ericfinance",
 };
 
-export const AWS_REGION = "us-west-2";
+export const AWS_REGION = "us-east-1";

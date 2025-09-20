@@ -12,6 +12,11 @@ type DBContextType = {
   changePassword: () => void;
   addEncryption: () => void;
   isEncrypted: boolean;
+  importDecryptedDatabase: (
+    bytes: Uint8Array,
+    password: string | null
+  ) => Promise<void>;
+  getRawDatabaseBytes: () => Uint8Array | null;
 };
 
 export const DBContext = createContext<DBContextType>({
@@ -24,4 +29,6 @@ export const DBContext = createContext<DBContextType>({
   changePassword: () => null,
   addEncryption: () => null,
   isEncrypted: false,
+  importDecryptedDatabase: () => Promise.resolve(),
+  getRawDatabaseBytes: () => null,
 });
