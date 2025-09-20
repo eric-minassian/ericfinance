@@ -2,17 +2,21 @@ export type Stage = "dev" | "beta" | "prod";
 
 export interface EnvironmentConfig {
   name: Stage;
+  domainName: string;
 }
 
 export const environments: Record<Stage, EnvironmentConfig> = {
   dev: {
     name: "dev",
+    domainName: "dev.finance.ericminassian.com",
   },
   beta: {
     name: "beta",
+    domainName: "beta.finance.ericminassian.com",
   },
   prod: {
     name: "prod",
+    domainName: "finance.ericminassian.com",
   },
 };
 

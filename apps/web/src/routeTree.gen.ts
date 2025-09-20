@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SidebarRouteImport } from './routes/_sidebar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SidebarDashboardRouteImport } from './routes/_sidebar/dashboard'
+import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
+import { Route as AuthPortfolioSelectRouteImport } from './routes/_auth/portfolio-select'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as SidebarSettingsIndexRouteImport } from './routes/_sidebar/settings/index'
 import { Route as SidebarAccountsIndexRouteImport } from './routes/_sidebar/accounts/index'
 import { Route as SidebarAccountsAccountIdRouteImport } from './routes/_sidebar/accounts/$accountId'
@@ -29,6 +32,21 @@ const SidebarDashboardRoute = SidebarDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => SidebarRoute,
+} as any)
+const AuthSignupRoute = AuthSignupRouteImport.update({
+  id: '/_auth/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthPortfolioSelectRoute = AuthPortfolioSelectRouteImport.update({
+  id: '/_auth/portfolio-select',
+  path: '/portfolio-select',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/_auth/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SidebarSettingsIndexRoute = SidebarSettingsIndexRouteImport.update({
   id: '/settings/',
@@ -49,6 +67,9 @@ const SidebarAccountsAccountIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof AuthLoginRoute
+  '/portfolio-select': typeof AuthPortfolioSelectRoute
+  '/signup': typeof AuthSignupRoute
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/accounts': typeof SidebarAccountsIndexRoute
@@ -56,6 +77,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof AuthLoginRoute
+  '/portfolio-select': typeof AuthPortfolioSelectRoute
+  '/signup': typeof AuthSignupRoute
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/accounts': typeof SidebarAccountsIndexRoute
@@ -65,6 +89,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_sidebar': typeof SidebarRouteWithChildren
+  '/_auth/login': typeof AuthLoginRoute
+  '/_auth/portfolio-select': typeof AuthPortfolioSelectRoute
+  '/_auth/signup': typeof AuthSignupRoute
   '/_sidebar/dashboard': typeof SidebarDashboardRoute
   '/_sidebar/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/_sidebar/accounts/': typeof SidebarAccountsIndexRoute
@@ -74,16 +101,30 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/portfolio-select'
+    | '/signup'
     | '/dashboard'
     | '/accounts/$accountId'
     | '/accounts'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/accounts/$accountId' | '/accounts' | '/settings'
+  to:
+    | '/'
+    | '/login'
+    | '/portfolio-select'
+    | '/signup'
+    | '/dashboard'
+    | '/accounts/$accountId'
+    | '/accounts'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/_sidebar'
+    | '/_auth/login'
+    | '/_auth/portfolio-select'
+    | '/_auth/signup'
     | '/_sidebar/dashboard'
     | '/_sidebar/accounts/$accountId'
     | '/_sidebar/accounts/'
@@ -93,6 +134,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SidebarRoute: typeof SidebarRouteWithChildren
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthPortfolioSelectRoute: typeof AuthPortfolioSelectRoute
+  AuthSignupRoute: typeof AuthSignupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,6 +161,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof SidebarDashboardRouteImport
       parentRoute: typeof SidebarRoute
+    }
+    '/_auth/signup': {
+      id: '/_auth/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof AuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/portfolio-select': {
+      id: '/_auth/portfolio-select'
+      path: '/portfolio-select'
+      fullPath: '/portfolio-select'
+      preLoaderRoute: typeof AuthPortfolioSelectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_sidebar/settings/': {
       id: '/_sidebar/settings/'
@@ -162,6 +227,9 @@ const SidebarRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SidebarRoute: SidebarRouteWithChildren,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthPortfolioSelectRoute: AuthPortfolioSelectRoute,
+  AuthSignupRoute: AuthSignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

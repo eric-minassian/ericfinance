@@ -33,14 +33,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build project
-        run: pnpm --filter web build
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: us-west-2
+          aws-region: us-east-1
 
       - name: Deploy CDK stack
         run: pnpm --filter=@ericfinance/cdk run deploy --context stage=beta
@@ -70,14 +67,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build project
-        run: pnpm --filter web build
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: us-west-2
+          aws-region: us-east-1
 
       - name: Deploy CDK stack
         run: pnpm --filter=@ericfinance/cdk run deploy --context stage=prod
