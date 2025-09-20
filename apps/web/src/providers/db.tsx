@@ -59,6 +59,35 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const importDecryptedDatabase = async (
+    bytes: Uint8Array,
+    pwd: string | null
+  ) => {
+    if (!sql) return;
+    try {
+      const sqlDbInstance = new sql.Database(bytes);
+      const dbInstance = drizzle(sqlDbInstance, { schema });
+      await migrate(dbInstance, { journal, migrations });
+      setDB(dbInstance);
+      setSqlDb(sqlDbInstance);
+      setPassword(pwd);
+      toast.success("Remote portfolio loaded");
+    } catch (e) {
+      console.error("Failed to import decrypted database", e);
+      toast.error("Failed to load remote portfolio");
+      throw e;
+    }
+  };
+
+  const getRawDatabaseBytes = (): Uint8Array | null => {
+    if (!sqlDb) return null;
+    try {
+      return sqlDb.export();
+    } catch {
+      return null;
+    }
+  };
+
   const createEncryptedDB = async (dbPassword: string) => {
     if (!sql) return;
     try {
@@ -303,6 +332,8 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         changePassword,
         addEncryption,
         isEncrypted,
+        importDecryptedDatabase,
+        getRawDatabaseBytes,
       }}
     >
       {children}

@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as SidebarRouteImport } from './routes/_sidebar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SidebarDashboardRouteImport } from './routes/_sidebar/dashboard'
@@ -16,6 +18,16 @@ import { Route as SidebarSettingsIndexRouteImport } from './routes/_sidebar/sett
 import { Route as SidebarAccountsIndexRouteImport } from './routes/_sidebar/accounts/index'
 import { Route as SidebarAccountsAccountIdRouteImport } from './routes/_sidebar/accounts/$accountId'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SidebarRoute = SidebarRouteImport.update({
   id: '/_sidebar',
   getParentRoute: () => rootRouteImport,
@@ -49,6 +61,8 @@ const SidebarAccountsAccountIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/accounts': typeof SidebarAccountsIndexRoute
@@ -56,6 +70,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/accounts': typeof SidebarAccountsIndexRoute
@@ -65,6 +81,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_sidebar': typeof SidebarRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/_sidebar/dashboard': typeof SidebarDashboardRoute
   '/_sidebar/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
   '/_sidebar/accounts/': typeof SidebarAccountsIndexRoute
@@ -74,16 +92,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/signup'
     | '/dashboard'
     | '/accounts/$accountId'
     | '/accounts'
     | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/accounts/$accountId' | '/accounts' | '/settings'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/dashboard'
+    | '/accounts/$accountId'
+    | '/accounts'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/_sidebar'
+    | '/login'
+    | '/signup'
     | '/_sidebar/dashboard'
     | '/_sidebar/accounts/$accountId'
     | '/_sidebar/accounts/'
@@ -93,10 +122,26 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SidebarRoute: typeof SidebarRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_sidebar': {
       id: '/_sidebar'
       path: ''
@@ -162,6 +207,8 @@ const SidebarRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SidebarRoute: SidebarRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

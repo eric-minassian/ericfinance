@@ -2,7 +2,9 @@
 import { App } from "aws-cdk-lib";
 import { PolicyDocument, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import * as path from "path";
+import { AuthStack } from "../lib/auth-stack";
 import { GithubActionsAwsAuthStack } from "../lib/github-actions-aws-auth-stack";
+import { PortfolioStack } from "../lib/portfolio-stack";
 import { StaticSiteStack } from "../lib/static-site-stack";
 import { getEnvironmentConfig } from "../lib/utils/config";
 import { AWS_REGION, REPOSITORY_CONFIG } from "../lib/utils/contants";
@@ -34,10 +36,22 @@ if (config.name !== "dev") {
   });
 }
 
+const authStack = new AuthStack(app, `EricFinance-Auth-${config.name}`, {
+  env,
+  stageName: config.name,
+});
+
 new StaticSiteStack(app, `EricFinance-StaticSite-${config.name}`, {
   config,
   buildPath: webBuildPath,
   env,
+});
+
+new PortfolioStack(app, `EricFinance-Portfolio-${config.name}`, {
+  env,
+  stageName: config.name,
+  userPool: authStack.userPool,
+  userPoolClient: authStack.userPoolClient,
 });
 
 // CDK Nag
