@@ -1,7 +1,7 @@
 import { buttonVariants } from "@/components/ui/button";
 import { useFormFieldItemContext } from "@/components/ui/form/field/form-field-context";
 import { cn } from "@/lib/utils";
-import { Slot } from "@radix-ui/react-slot";
+import { Slot as SlotPrimitive } from "radix-ui";
 import type React from "react";
 
 type FormFieldControlIconProps = React.ComponentProps<"div"> & {
@@ -30,7 +30,7 @@ const FormFieldControlIcon: React.FC<FormFieldControlIconProps> = ({
       >
         {icon}
       </div>
-      <Slot className="pl-9">{children}</Slot>
+      <SlotPrimitive.Slot className="pl-9">{children}</SlotPrimitive.Slot>
     </div>
   );
 };

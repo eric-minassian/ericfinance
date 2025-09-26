@@ -10,17 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SidebarRouteImport } from './routes/_sidebar'
+import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SidebarDashboardRouteImport } from './routes/_sidebar/dashboard'
 import { Route as AuthSignupRouteImport } from './routes/_auth/signup'
-import { Route as AuthPortfolioSelectRouteImport } from './routes/_auth/portfolio-select'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AuthConfirmRouteImport } from './routes/_auth/confirm'
 import { Route as SidebarSettingsIndexRouteImport } from './routes/_sidebar/settings/index'
 import { Route as SidebarAccountsIndexRouteImport } from './routes/_sidebar/accounts/index'
 import { Route as SidebarAccountsAccountIdRouteImport } from './routes/_sidebar/accounts/$accountId'
 
 const SidebarRoute = SidebarRouteImport.update({
   id: '/_sidebar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -34,19 +39,19 @@ const SidebarDashboardRoute = SidebarDashboardRouteImport.update({
   getParentRoute: () => SidebarRoute,
 } as any)
 const AuthSignupRoute = AuthSignupRouteImport.update({
-  id: '/_auth/signup',
+  id: '/signup',
   path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthPortfolioSelectRoute = AuthPortfolioSelectRouteImport.update({
-  id: '/_auth/portfolio-select',
-  path: '/portfolio-select',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/_auth/login',
+  id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthConfirmRoute = AuthConfirmRouteImport.update({
+  id: '/confirm',
+  path: '/confirm',
+  getParentRoute: () => AuthRoute,
 } as any)
 const SidebarSettingsIndexRoute = SidebarSettingsIndexRouteImport.update({
   id: '/settings/',
@@ -67,8 +72,8 @@ const SidebarAccountsAccountIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/confirm': typeof AuthConfirmRoute
   '/login': typeof AuthLoginRoute
-  '/portfolio-select': typeof AuthPortfolioSelectRoute
   '/signup': typeof AuthSignupRoute
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
@@ -77,8 +82,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/confirm': typeof AuthConfirmRoute
   '/login': typeof AuthLoginRoute
-  '/portfolio-select': typeof AuthPortfolioSelectRoute
   '/signup': typeof AuthSignupRoute
   '/dashboard': typeof SidebarDashboardRoute
   '/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
@@ -88,9 +93,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_auth': typeof AuthRouteWithChildren
   '/_sidebar': typeof SidebarRouteWithChildren
+  '/_auth/confirm': typeof AuthConfirmRoute
   '/_auth/login': typeof AuthLoginRoute
-  '/_auth/portfolio-select': typeof AuthPortfolioSelectRoute
   '/_auth/signup': typeof AuthSignupRoute
   '/_sidebar/dashboard': typeof SidebarDashboardRoute
   '/_sidebar/accounts/$accountId': typeof SidebarAccountsAccountIdRoute
@@ -101,8 +107,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/confirm'
     | '/login'
-    | '/portfolio-select'
     | '/signup'
     | '/dashboard'
     | '/accounts/$accountId'
@@ -111,8 +117,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/confirm'
     | '/login'
-    | '/portfolio-select'
     | '/signup'
     | '/dashboard'
     | '/accounts/$accountId'
@@ -121,9 +127,10 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_auth'
     | '/_sidebar'
+    | '/_auth/confirm'
     | '/_auth/login'
-    | '/_auth/portfolio-select'
     | '/_auth/signup'
     | '/_sidebar/dashboard'
     | '/_sidebar/accounts/$accountId'
@@ -133,10 +140,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRouteWithChildren
   SidebarRoute: typeof SidebarRouteWithChildren
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthPortfolioSelectRoute: typeof AuthPortfolioSelectRoute
-  AuthSignupRoute: typeof AuthSignupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -146,6 +151,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: ''
       preLoaderRoute: typeof SidebarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -167,21 +179,21 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof AuthSignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth/portfolio-select': {
-      id: '/_auth/portfolio-select'
-      path: '/portfolio-select'
-      fullPath: '/portfolio-select'
-      preLoaderRoute: typeof AuthPortfolioSelectRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_auth/login': {
       id: '/_auth/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/confirm': {
+      id: '/_auth/confirm'
+      path: '/confirm'
+      fullPath: '/confirm'
+      preLoaderRoute: typeof AuthConfirmRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_sidebar/settings/': {
       id: '/_sidebar/settings/'
@@ -207,6 +219,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthRouteChildren {
+  AuthConfirmRoute: typeof AuthConfirmRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthSignupRoute: typeof AuthSignupRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthConfirmRoute: AuthConfirmRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthSignupRoute: AuthSignupRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 interface SidebarRouteChildren {
   SidebarDashboardRoute: typeof SidebarDashboardRoute
   SidebarAccountsAccountIdRoute: typeof SidebarAccountsAccountIdRoute
@@ -226,10 +252,8 @@ const SidebarRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRouteWithChildren,
   SidebarRoute: SidebarRouteWithChildren,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthPortfolioSelectRoute: AuthPortfolioSelectRoute,
-  AuthSignupRoute: AuthSignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
