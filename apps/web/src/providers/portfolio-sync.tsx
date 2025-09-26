@@ -8,7 +8,7 @@ export function PortfolioSyncProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { config } = useRuntimeConfig();
+  const { data: config } = useRuntimeConfig();
   const apiBase = config?.portfolioApiUrl;
   const client = useMemo(
     () => (apiBase ? new PortfolioSyncClient(apiBase) : null),

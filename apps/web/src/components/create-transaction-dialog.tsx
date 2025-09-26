@@ -2,7 +2,6 @@ import { useAppForm } from "@/hooks/form";
 import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { useCreateTransactions } from "@/lib/services/transactions/create-transactions";
-import { DialogTitle } from "@radix-ui/react-dialog";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
@@ -15,6 +14,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
 import { Input } from "./ui/input";
