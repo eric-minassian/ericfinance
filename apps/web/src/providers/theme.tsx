@@ -42,7 +42,7 @@ export function ThemeProvider({
       if (metaThemeColor) {
         metaThemeColor.setAttribute(
           "content",
-          effectiveTheme === "dark" ? "#2e2e2e" : "#fafafa"
+          effectiveTheme === "dark" ? "#121212" : "#f8f8f8"
         );
       }
     };
