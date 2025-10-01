@@ -20,19 +20,45 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove("light", "dark");
+    const updateTheme = (systemTheme?: "light" | "dark") => {
+      root.classList.remove("light", "dark");
 
+      let effectiveTheme: "light" | "dark" = "light";
+
+      if (theme === "system") {
+        effectiveTheme =
+          systemTheme ||
+          (window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+      } else {
+        effectiveTheme = theme;
+      }
+
+      root.classList.add(effectiveTheme);
+
+      // Update theme-color meta tag for PWA status bar
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute(
+          "content",
+          effectiveTheme === "dark" ? "#2e2e2e" : "#fafafa"
+        );
+      }
+    };
+
+    updateTheme();
+
+    // Listen for system theme changes when theme is set to "system"
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = (e: MediaQueryListEvent) => {
+        updateTheme(e.matches ? "dark" : "light");
+      };
 
-      root.classList.add(systemTheme);
-      return;
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
     }
-
-    root.classList.add(theme);
   }, [theme]);
 
   const value = {
