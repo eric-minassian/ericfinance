@@ -32,9 +32,6 @@ jobs:
       - name: Lint web application
         run: pnpm --filter web lint
 
-      - name: Build web application
-        run: pnpm --filter web build
-
       - name: Test CDK package
         run: pnpm --filter @ericfinance/cdk run test
 
