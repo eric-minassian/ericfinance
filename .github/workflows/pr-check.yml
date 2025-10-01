@@ -37,3 +37,6 @@ jobs:
 
       - name: Test CDK package
         run: pnpm --filter @ericfinance/cdk run test
+
+      - name: Synthesize CDK stacks
+        run: pnpm --filter @ericfinance/cdk run synth
