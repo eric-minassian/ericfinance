@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FieldDescription, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/auth";
 import { useAppForm } from "@/hooks/form";
@@ -83,70 +84,69 @@ function SignupRoute() {
   }
 
   return (
-    <Card className="w-full max-w-sm backdrop-blur-sm bg-card/70">
+    <Card>
       <CardHeader className="text-center border-b">
-        <CardTitle className="text-xl tracking-tight">EricFinance</CardTitle>
-        <CardDescription className="text-[11px]">
-          Create an account to enable sync.
-        </CardDescription>
+        <CardTitle>EricFinance</CardTitle>
+        <CardDescription>Create an account to get started</CardDescription>
       </CardHeader>
-      <CardContent className="py-5">
+      <CardContent>
         <form.AppForm>
           <form
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
             }}
-            className="space-y-4"
           >
-            <form.AppField
-              name="email"
-              children={(field) => (
-                <field.FormFieldItem>
-                  <field.FormFieldLabel>Email</field.FormFieldLabel>
-                  <field.FormFieldControl>
-                    <Input
-                      type="email"
-                      autoComplete="email"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder="you@example.com"
-                    />
-                  </field.FormFieldControl>
-                  <field.FormFieldMessage />
-                </field.FormFieldItem>
-              )}
-            />
-            <form.AppField
-              name="password"
-              children={(field) => (
-                <field.FormFieldItem>
-                  <field.FormFieldLabel>Password</field.FormFieldLabel>
-                  <field.FormFieldControl>
-                    <Input
-                      type="password"
-                      autoComplete="new-password"
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder="••••••••"
-                    />
-                  </field.FormFieldControl>
-                  <field.FormFieldMessage />
-                </field.FormFieldItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Create Account
-            </Button>
+            <FieldGroup>
+              <form.AppField
+                name="email"
+                children={(field) => (
+                  <field.FormFieldItem>
+                    <field.FormFieldLabel>Email</field.FormFieldLabel>
+                    <field.FormFieldControl>
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder="you@example.com"
+                      />
+                    </field.FormFieldControl>
+                    <field.FormFieldMessage />
+                  </field.FormFieldItem>
+                )}
+              />
+              <form.AppField
+                name="password"
+                children={(field) => (
+                  <field.FormFieldItem>
+                    <field.FormFieldLabel>Password</field.FormFieldLabel>
+                    <field.FormFieldControl>
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder="••••••••"
+                      />
+                    </field.FormFieldControl>
+                    <field.FormFieldMessage />
+                  </field.FormFieldItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Create Account
+              </Button>
+            </FieldGroup>
           </form>
         </form.AppForm>
       </CardContent>
-      <CardFooter>
-        <Button asChild variant="link">
-          <Link to="/login">Sign in</Link>
-        </Button>
+      <CardFooter className="flex flex-col items-center">
+        <FieldDescription>
+          Already have an account? <Link to="/login">Sign in</Link>
+        </FieldDescription>
       </CardFooter>
     </Card>
   );
