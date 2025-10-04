@@ -3,20 +3,14 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SpaceBetween } from "@/components/ui/space-between";
 import { useAuth } from "@/hooks/auth";
 import { useAppForm } from "@/hooks/form";
-import {
-  createFileRoute,
-  Link,
-  Navigate,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { confirmSignUp } from "aws-amplify/auth";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -80,12 +74,10 @@ function ConfirmRoute() {
   }
 
   return (
-    <Card className="w-full max-w-sm backdrop-blur-sm bg-card/70">
+    <Card>
       <CardHeader className="text-center border-b">
-        <CardTitle className="text-xl tracking-tight">Verify Email</CardTitle>
-        <CardDescription className="text-[11px]">
-          Enter the code sent to {email}
-        </CardDescription>
+        <CardTitle>EricFinance</CardTitle>
+        <CardDescription>Enter the code sent to {email}</CardDescription>
       </CardHeader>
       <CardContent className="py-5">
         <form.AppForm>
@@ -94,48 +86,39 @@ function ConfirmRoute() {
               e.preventDefault();
               form.handleSubmit();
             }}
-            className="space-y-4"
           >
-            <form.AppField
-              name="code"
-              children={(field) => (
-                <field.FormFieldItem>
-                  <field.FormFieldLabel>Verification Code</field.FormFieldLabel>
-                  <field.FormFieldControl>
-                    <Input
-                      inputMode="numeric"
-                      autoFocus
-                      value={field.state.value}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      onBlur={field.handleBlur}
-                      placeholder="123456"
-                    />
-                  </field.FormFieldControl>
-                  <field.FormFieldMessage />
-                  <p className="text-[11px] text-muted-foreground">
-                    Check your inbox (and spam) for the code.
-                  </p>
-                </field.FormFieldItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Verify & Continue
-            </Button>
+            <FieldGroup>
+              <form.AppField
+                name="code"
+                children={(field) => (
+                  <field.FormFieldItem>
+                    <field.FormFieldLabel>
+                      Verification Code
+                    </field.FormFieldLabel>
+                    <field.FormFieldControl>
+                      <Input
+                        inputMode="numeric"
+                        autoFocus
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder="123456"
+                      />
+                    </field.FormFieldControl>
+                    <field.FormFieldMessage />
+                    <p className="text-[11px] text-muted-foreground">
+                      Check your inbox (and spam) for the code.
+                    </p>
+                  </field.FormFieldItem>
+                )}
+              />
+              <Button type="submit" className="w-full">
+                Verify & Continue
+              </Button>
+            </FieldGroup>
           </form>
         </form.AppForm>
       </CardContent>
-      <CardFooter>
-        <SpaceBetween>
-          <Button asChild variant="link">
-            <Link to="/login">Sign in</Link>
-          </Button>
-          <Button asChild variant="link">
-            <Link to="/signup" search={{ email }}>
-              Sign up
-            </Link>
-          </Button>
-        </SpaceBetween>
-      </CardFooter>
     </Card>
   );
 }
