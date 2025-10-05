@@ -1,3 +1,5 @@
+import { usePrimaryModifierKey } from "@/hooks/use-primary-modifier-key";
+
 import { Kbd, KbdGroup } from "../ui/kbd";
 import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -9,6 +11,8 @@ export interface SiteHeaderProps {
 }
 
 export function SiteHeader({ actions, children }: SiteHeaderProps) {
+  const modifierKey = usePrimaryModifierKey();
+
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
@@ -20,7 +24,9 @@ export function SiteHeader({ actions, children }: SiteHeaderProps) {
             <div className="flex items-center gap-2">
               Toggle Sidebar{" "}
               <KbdGroup>
-                <Kbd>Ctrl</Kbd>
+                <Kbd aria-label={modifierKey.ariaLabel}>
+                  {modifierKey.symbol}
+                </Kbd>
                 <Kbd>B</Kbd>
               </KbdGroup>
             </div>
