@@ -6,7 +6,6 @@ type DBContextType = {
   setFile: (file: File | null) => void;
   db: SQLJsDatabase<typeof schema> | null;
   exportDB: () => void;
-  createEmptyDB: () => Promise<void>;
   createEncryptedDB: (password: string) => Promise<void>;
   showCreateEncryptedDialog: () => void;
   changePassword: () => void;
@@ -23,7 +22,6 @@ export const DBContext = createContext<DBContextType>({
   setFile: () => null,
   db: null,
   exportDB: () => null,
-  createEmptyDB: () => Promise.resolve(),
   createEncryptedDB: () => Promise.resolve(),
   showCreateEncryptedDialog: () => null,
   changePassword: () => null,
