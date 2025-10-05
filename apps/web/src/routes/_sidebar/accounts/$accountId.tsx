@@ -1,7 +1,7 @@
+import { ContentLayout } from "@/components/layout/content-layout";
+import { SiteHeader } from "@/components/layout/site-header";
 import { NetWorthChart } from "@/components/net-worth-chart";
 import { TransactionsTable } from "@/components/transactions-table";
-import { ContentLayout } from "@/components/ui/content-layout";
-import { Header } from "@/components/ui/header";
 import { useGetAccount } from "@/lib/services/accounts/get-account";
 import { EditAccountDropdown } from "@/routes/_sidebar/accounts/-components/edit-account-dropdown";
 import { createFileRoute } from "@tanstack/react-router";
@@ -17,7 +17,7 @@ function RouteComponent() {
   return (
     <ContentLayout
       header={
-        <Header
+        <SiteHeader
           actions={
             <EditAccountDropdown
               accountId={accountId}
@@ -26,7 +26,7 @@ function RouteComponent() {
           }
         >
           Account {data?.name}
-        </Header>
+        </SiteHeader>
       }
     >
       <NetWorthChart accountId={accountId} />

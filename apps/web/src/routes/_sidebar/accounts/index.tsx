@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { ContentLayout } from "@/components/layout/content-layout";
+import { SiteHeader } from "@/components/layout/site-header";
 import { NetWorthChart } from "@/components/net-worth-chart";
-import { ContentLayout } from "@/components/ui/content-layout";
-import { Header } from "@/components/ui/header";
 import { AccountsList } from "@/routes/_sidebar/accounts/-components/accounts-list";
 import { CreateAccountButton } from "@/routes/_sidebar/accounts/-components/create-account-button";
+import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_sidebar/accounts/")({
   component: RouteComponent,
@@ -12,7 +12,9 @@ export const Route = createFileRoute("/_sidebar/accounts/")({
 function RouteComponent() {
   return (
     <ContentLayout
-      header={<Header actions={<CreateAccountButton />}>Accounts</Header>}
+      header={
+        <SiteHeader actions={<CreateAccountButton />}>Accounts</SiteHeader>
+      }
     >
       <NetWorthChart />
       <AccountsList />

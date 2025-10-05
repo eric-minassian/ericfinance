@@ -1,9 +1,4 @@
-import {
-  Check,
-  ChevronsUpDown,
-  Download,
-  GalleryVerticalEnd,
-} from "lucide-react";
+import { Download } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -23,12 +18,6 @@ import { useDB } from "@/hooks/db";
 import { useListAccounts } from "@/lib/services/accounts/list-accounts";
 import { Link, useLocation } from "@tanstack/react-router";
 import Icon from "./icon";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 
 const data = {
   navMain: [
@@ -72,47 +61,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar {...props}>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
-        {/* <SidebarMenu>
-          <SidebarMenuItem className="flex gap-2">
-            <SidebarMenuButton asChild>
-              <Link to="/">
-                <Icon variant="logo" />
-                EricFinance
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu> */}
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                    <GalleryVerticalEnd className="size-4" />
-                  </div>
-                  <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-medium">Documentation</span>
-                    <span className="">v12</span>
-                  </div>
-                  <ChevronsUpDown className="ml-auto" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-(--radix-dropdown-menu-trigger-width)"
-                align="start"
-              >
-                {[].map((version) => (
-                  <DropdownMenuItem key={version}>
-                    v{version} {version === 12 && <Check className="ml-auto" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5">
+              <span className="text-base font-semibold">EricFinance</span>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -144,12 +99,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 const isActive = pathname === `/accounts/${account.id}`;
                 return (
                   <SidebarMenuItem key={account.id}>
-                    <SidebarMenuButton isActive={isActive} asChild>
+                    <SidebarMenuButton isActive={isActive} size="sm" asChild>
                       <Link
                         to="/accounts/$accountId"
                         params={{ accountId: account.id }}
                       >
-                        <Icon variant="bank" />
+                        <div className="size-1.5 rounded-full bg-green-400" />
                         {account.name}
                       </Link>
                     </SidebarMenuButton>
