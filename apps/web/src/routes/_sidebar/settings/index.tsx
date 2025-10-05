@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { ContentLayout } from "@/components/ui/content-layout";
+import { ContentLayout } from "@/components/layout/content-layout";
 import { Header } from "@/components/ui/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createFileRoute } from "@tanstack/react-router";
 import { ListCategories } from "./-components/list-categories";
 import { ListRules } from "./-components/list-rules";
 import { SecuritySettings } from "./-components/security-settings";
