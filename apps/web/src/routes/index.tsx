@@ -1,15 +1,16 @@
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useDB } from "@/hooks/db";
 import { Navigate, createFileRoute } from "@tanstack/react-router";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { db, setFile, createEmptyDB, showCreateEncryptedDialog } = useDB();
+  const { db, setFile, showCreateEncryptedDialog } = useDB();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   if (db) {
     return <Navigate to="/dashboard" />;
@@ -20,45 +21,58 @@ function RouteComponent() {
     if (file) {
       setFile(file);
     }
+    e.target.value = "";
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
-    <div className="relative min-h-svh w-full">
-      <div className="absolute top-4 right-4 z-10">
+    <div className="flex min-h-svh flex-col bg-background">
+      <header className="flex justify-end p-4">
         <ModeToggle />
-      </div>
-      <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm">
-          <div className="space-y-4 text-center mb-6">
-            <h1 className="text-2xl font-bold">Welcome to EricFinance</h1>
-            <p className="text-sm text-muted-foreground">
-              Select your database file to get started
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Input type="file" accept=".db,.enc" onChange={handleFileChange} />
-            <div className="text-center my-2">
-              <p className="text-sm text-muted-foreground">or</p>
-            </div>
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                onClick={createEmptyDB}
-                className="w-full"
-              >
-                Create New Database
-              </Button>
-              <Button
-                variant="outline"
-                onClick={showCreateEncryptedDialog}
-                className="w-full"
-              >
-                Create Encrypted Database
-              </Button>
-            </div>
-          </div>
+      </header>
+      <main className="flex flex-1 flex-col items-center justify-center gap-10 px-6 pb-16 text-center">
+        <div className="max-w-lg space-y-3">
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Your private portfolio, on your terms
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Start with a fresh encrypted database or bring your existing
+            portfolio. All data stays on your device and is protected by your
+            password.
+          </p>
         </div>
-      </div>
+        <div className="w-full max-w-sm space-y-3">
+          <Button
+            className="h-12 w-full"
+            onClick={showCreateEncryptedDialog}
+            size="lg"
+          >
+            Create encrypted portfolio
+          </Button>
+          <Button
+            variant="secondary"
+            className="h-12 w-full"
+            onClick={handleUploadClick}
+            size="lg"
+          >
+            Upload existing portfolio
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            New portfolios must be encrypted. Unencrypted files can still be
+            imported and will remain local to your browser.
+          </p>
+        </div>
+      </main>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".db,.enc"
+        onChange={handleFileChange}
+        className="sr-only"
+      />
     </div>
   );
 }

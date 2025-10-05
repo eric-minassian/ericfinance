@@ -41,22 +41,16 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
     }
   }, [db]);
 
-  const createEmptyDB = async () => {
-    if (!sql) return;
-    try {
-      const newDb = new sql.Database();
-      const db = drizzle(newDb, { schema: schema });
-
-      await migrate(db, { journal, migrations });
-
-      setDB(db);
-      setSqlDb(newDb);
-      setFile(null);
-      setPassword(null);
-      console.log("Empty database created successfully");
-    } catch (error) {
-      console.error("Error creating empty database:", error);
-    }
+  const migrateAndSetDatabase = async (
+    databaseInstance: Database,
+    passwordValue: string | null
+  ) => {
+    const hydratedDb = drizzle(databaseInstance, { schema });
+    await migrate(hydratedDb, { journal, migrations });
+    setDB(hydratedDb);
+    setSqlDb(databaseInstance);
+    setPassword(passwordValue);
+    return hydratedDb;
   };
 
   const importDecryptedDatabase = async (
@@ -66,14 +60,12 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
     if (!sql) return;
     try {
       const sqlDbInstance = new sql.Database(bytes);
-      const dbInstance = drizzle(sqlDbInstance, { schema });
-      await migrate(dbInstance, { journal, migrations });
-      setDB(dbInstance);
-      setSqlDb(sqlDbInstance);
-      setPassword(pwd);
+      await migrateAndSetDatabase(sqlDbInstance, pwd);
       toast.success("Remote portfolio loaded");
     } catch (e) {
       console.error("Failed to import decrypted database", e);
+      setDB(null);
+      setSqlDb(null);
       toast.error("Failed to load remote portfolio");
       throw e;
     }
@@ -91,16 +83,9 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
   const createEncryptedDB = async (dbPassword: string) => {
     if (!sql) return;
     try {
-      const newDb = new sql.Database();
-      const db = drizzle(newDb, { schema: schema });
-
-      await migrate(db, { journal, migrations });
-
-      setDB(db);
-      setSqlDb(newDb);
+      const newSqlDb = new sql.Database();
+      await migrateAndSetDatabase(newSqlDb, dbPassword);
       setFile(null);
-      setPassword(dbPassword);
-      console.log("Empty encrypted database created successfully");
       toast.success("Encrypted database created successfully");
     } catch (error) {
       console.error("Error creating encrypted database:", error);
@@ -161,7 +146,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
 
     return new Promise<void>((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = async function () {
+      reader.onload = async () => {
         try {
           if (!reader.result) {
             throw new Error("Failed to read file");
@@ -169,32 +154,22 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
 
           const arrayBuffer = reader.result as ArrayBuffer;
           const uint8Array = new Uint8Array(arrayBuffer);
+          const encrypted = isEncryptedDatabase(uint8Array);
+          const dbData = encrypted
+            ? await decryptDatabase(uint8Array, enteredPassword)
+            : uint8Array;
 
-          let dbData: Uint8Array;
+          const sqlDbInstance = new sql.Database(dbData);
+          await migrateAndSetDatabase(
+            sqlDbInstance,
+            encrypted ? enteredPassword : null
+          );
 
-          if (isEncryptedDatabase(uint8Array)) {
-            // Decrypt the database
-            dbData = await decryptDatabase(uint8Array, enteredPassword);
-            setPassword(enteredPassword); // Store password for future exports
-          } else {
-            dbData = uint8Array;
-            setPassword(null); // No password for unencrypted databases
-          }
-
-          const sqlDb = new sql.Database(dbData);
-          const db = drizzle(sqlDb, { schema: schema });
-
-          await migrate(db, { journal, migrations });
-
-          setDB(db);
-          setSqlDb(sqlDb);
           setPendingFile(null);
-          console.log("Database initialized successfully");
           toast.success("Database loaded successfully");
           resolve();
         } catch (error) {
           console.error("Error initializing database:", error);
-          // Don't clear pendingFile on error, so user can retry
           setDB(null);
           setSqlDb(null);
           reject(error);
@@ -207,11 +182,6 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
 
       reader.readAsArrayBuffer(pendingFile);
     });
-  };
-
-  // Handle new encrypted database creation
-  const handleCreateEncryptedDB = async (enteredPassword: string) => {
-    await createEncryptedDB(enteredPassword);
   };
 
   // Show dialog for creating encrypted database
@@ -299,14 +269,8 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
 
           // This is an unencrypted database, load directly
           const sqlDb = new sql.Database(uint8Array);
-          const db = drizzle(sqlDb, { schema: schema });
-
-          await migrate(db, { journal, migrations });
-
-          setDB(db);
-          setSqlDb(sqlDb);
-          setPassword(null); // No password for unencrypted databases
-          console.log("Database initialized successfully");
+          await migrateAndSetDatabase(sqlDb, null);
+          toast.success("Database loaded successfully");
         } catch (error) {
           console.error("Error initializing database:", error);
           setDB(null);
@@ -317,6 +281,9 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
       reader.readAsArrayBuffer(file);
     } else {
       setDB(null);
+      setSqlDb(null);
+      setPassword(null);
+      setPendingFile(null);
     }
   }, [file, sql]);
 
@@ -326,7 +293,6 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         setFile,
         db,
         exportDB,
-        createEmptyDB,
         createEncryptedDB,
         showCreateEncryptedDialog,
         changePassword,
@@ -346,7 +312,7 @@ export function DBProvider({ children }: { children: React.ReactNode }) {
         }}
         onSubmit={
           passwordDialogType === "create"
-            ? handleCreateEncryptedDB
+            ? createEncryptedDB
             : passwordDialogType === "change"
             ? handleChangePassword
             : passwordDialogType === "addEncryption"
