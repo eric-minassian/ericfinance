@@ -41,6 +41,7 @@ export function useUpdateTransaction() {
       queryClient.invalidateQueries({
         queryKey: ["totalFilteredTransactions"],
       });
+      queryClient.invalidateQueries({ queryKey: ["infiniteListTransactions"] });
     },
   });
 }

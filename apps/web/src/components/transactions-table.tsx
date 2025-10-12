@@ -3,27 +3,23 @@ import { DateString } from "@/lib/date";
 import { Account } from "@/lib/db/schema/accounts";
 import { useListCategories } from "@/lib/services/categories/list-categories";
 import { useTotalFilteredTransactions } from "@/lib/services/transactions/get-total-filtered-transactions";
-import { useInfiniteListTransactionsGroupedByDate } from "@/lib/services/transactions/list-transactions-by-date";
+import { useInfiniteListTransactions } from "@/lib/services/transactions/list-transactions-infinite";
 import { useUpdateTransaction } from "@/lib/services/transactions/update-transaction";
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { CreateTransactionButton } from "./create-transaction-dialog";
-import { TransactionsTableFilterButton } from "./transactions-table-filter-button";
-import { Card, CardContent, CardHeader } from "./ui/card";
-import { Header } from "./ui/header";
-import { ScrollArea, ScrollBar } from "./ui/scroll-area";
+import { TableCombobox } from "./table-combobox";
+import { ScrollArea } from "./ui/scroll-area";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { SpaceBetween } from "./ui/space-between";
-import { Table, TableBody, TableCell, TableHead, TableRow } from "./ui/table";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 50;
 
 interface TransactionsTableProps {
   accountId?: Account["id"];
@@ -31,7 +27,6 @@ interface TransactionsTableProps {
 
 export function TransactionsTable({ accountId }: TransactionsTableProps) {
   const { ref, inView } = useInView();
-  const [page, setPage] = useState(0);
   const [startDate, setStartDate] = useState<DateString | undefined>();
   const [endDate, setEndDate] = useState<DateString | undefined>();
   const [categoryId, setCategoryId] = useState<string | undefined>();
@@ -41,14 +36,13 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
 
   const { db } = useDB();
   const {
-    data: groupedTransactions,
+    data: transactions,
     fetchNextPage,
     hasNextPage,
     isFetching,
     isFetchingNextPage,
-  } = useInfiniteListTransactionsGroupedByDate({
+  } = useInfiniteListTransactions({
     accountId,
-    includeTransactions: true,
     pageSize: PAGE_SIZE,
     startDate,
     endDate,
@@ -68,111 +62,74 @@ export function TransactionsTable({ accountId }: TransactionsTableProps) {
   useEffect(() => {
     if (inView) {
       fetchNextPage();
-      setPage((prev) => prev + 1);
     }
   }, [fetchNextPage, inView]);
 
   return (
-    <Card>
-      <CardHeader>
-        <Header
-          actions={
-            <SpaceBetween>
-              {accountId && <CreateTransactionButton accountId={accountId} />}
-              <TransactionsTableFilterButton
-                startDate={startDate}
-                setStartDate={setStartDate}
-                endDate={endDate}
-                setEndDate={setEndDate}
-                categoryId={categoryId}
-                setCategoryId={setCategoryId}
-              />
-            </SpaceBetween>
-          }
-          description={
-            hasFilters && filteredTotal !== undefined
-              ? `Total: ${formatCurrency(filteredTotal)}`
-              : "View and manage your transactions"
-          }
-        >
-          Transactions
-        </Header>
-      </CardHeader>
-      <ScrollArea className="h-[55vh] w-full">
-        <CardContent>
-          <Table>
-            {groupedTransactions?.pages
-              .slice(0, page + 1)
-              .flatMap((page) => page)
-              .map((group, idx) => (
-                <TableBody key={`${group.date.toISOString()}-${idx}`}>
-                  <TableRow className="bg-muted text-xs">
-                    <TableHead
-                      colSpan={2}
-                      className="text-muted-foreground h-8"
-                    >
-                      {group.date.toMDYString()}
-                    </TableHead>
-                    <TableHead className="text-muted-foreground text-right h-8">
-                      {formatCurrency(group.total)}
-                    </TableHead>
-                  </TableRow>
-                  {group.transactions.map((transaction) => (
-                    <TableRow key={transaction.id} className="h-12">
-                      <TableCell>{transaction.payee}</TableCell>
-                      <TableCell>
-                        <Select
-                          defaultValue={
-                            transaction.categoryId ?? "uncategorized"
-                          }
-                          onValueChange={async (value) => {
-                            if (!db) return;
-                            const categoryId =
-                              value === "uncategorized" ? null : value;
-                            await updateTransactionMutation.mutateAsync({
-                              transactionId: transaction.id,
-                              categoryId,
-                            });
-                          }}
-                        >
-                          <SelectTrigger size="sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="uncategorized">
-                              Uncategorized
-                            </SelectItem>
-                            {categories?.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(transaction.amount)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              ))}
-          </Table>
-          <div ref={ref}>
-            {(hasNextPage || isFetchingNextPage) && (
-              <div className="text-center text-sm text-muted-foreground">
-                Loading more transactions...
-              </div>
+    <div className="flex flex-col h-full">
+      <Table>
+        <TableHeader className="bg-background border-b">
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Payee</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+          </TableRow>
+        </TableHeader>
+      </Table>
+      <ScrollArea className="flex-1 min-h-0">
+        <Table>
+          <TableBody>
+            {transactions?.pages.flatMap((page) =>
+              page.map((transaction) => (
+                <TableRow key={transaction.id}>
+                  <TableCell>{transaction.date.toMDYString()}</TableCell>
+                  <TableCell>{transaction.payee}</TableCell>
+                  <TableCell className="py-0">
+                    <TableCombobox
+                      options={[
+                        { value: "uncategorized", label: "Uncategorized" },
+                        ...(categories?.map((category) => ({
+                          value: category.id,
+                          label: category.name,
+                        })) ?? []),
+                      ]}
+                      value={transaction.categoryId ?? "uncategorized"}
+                      onValueChange={async (value) => {
+                        if (!db) return;
+                        const categoryId =
+                          value === "uncategorized" ? null : value;
+                        await updateTransactionMutation.mutateAsync({
+                          transactionId: transaction.id,
+                          categoryId,
+                        });
+                      }}
+                      placeholder="Select category..."
+                      searchPlaceholder="Search categories..."
+                      emptyMessage="No category found."
+                    />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(transaction.amount)}
+                  </TableCell>
+                </TableRow>
+              ))
             )}
-            {!hasNextPage && !isFetching && (
-              <div className="text-center text-sm text-muted-foreground">
-                No more transactions
-              </div>
-            )}
-          </div>
-        </CardContent>
-        <ScrollBar orientation="vertical" />
+          </TableBody>
+        </Table>
+        <div ref={ref}>
+          {(hasNextPage || isFetchingNextPage) && (
+            <div className="text-center text-sm text-muted-foreground">
+              Loading more transactions...
+            </div>
+          )}
+          {!hasNextPage && !isFetching && (
+            <div className="text-center text-sm text-muted-foreground">
+              No more transactions
+            </div>
+          )}
+        </div>
       </ScrollArea>
-    </Card>
+    </div>
   );
 }

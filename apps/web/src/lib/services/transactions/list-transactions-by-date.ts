@@ -79,7 +79,8 @@ export function useInfiniteListTransactionsGroupedByDate<
       categoryId,
     ],
     queryFn: async ({ pageParam }) => {
-      return listTransactionsByDate<T>(db, {
+      const start = performance.now();
+      const data = await listTransactionsByDate<T>(db, {
         accountId,
         includeTransactions,
         page: pageParam,
@@ -89,6 +90,11 @@ export function useInfiniteListTransactionsGroupedByDate<
         endDate,
         categoryId,
       });
+      const end = performance.now();
+      console.log(
+        `useInfiniteListTransactionsGroupedByDate took ${end - start} ms`
+      );
+      return data;
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
